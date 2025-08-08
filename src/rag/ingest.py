@@ -51,13 +51,13 @@ def setup_llm_settings(config: dict) -> None:
         model=chat_model,
         base_url=base_url,
         temperature=0,
-        request_timeout=60.0,
+        request_timeout=config.get("REQUEST_TIMEOUT", 60.0),
     )
     
     Settings.embed_model = OllamaEmbedding(
         model_name=embed_model,
         base_url=base_url,
-        embed_batch_size=10,
+        embed_batch_size=config.get("EMBED_BATCH_SIZE", 10),
     )
     
     console.print(f"[green]Using chat model: {chat_model}[/green]")
@@ -113,9 +113,9 @@ def load_documents(docs_dir: Path) -> List:
     return documents
 
 
-def ingest(verbose: bool = False) -> None:
+def ingest(verbose: bool = False, env_name: Optional[str] = None) -> None:
     """Run document ingestion to build or update the vector index."""
-    config = load_config()
+    config = load_config(env_name)
     docs_dir = config["DOCS_DIR"]
     index_dir = config["INDEX_DIR"]
     

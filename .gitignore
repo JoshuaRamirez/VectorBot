@@ -80,6 +80,12 @@ cython_debug/
 # Project specific
 index_storage/
 docs/
+/data/
+
+# Build artifacts
+build/
+dist/
+*.spec
 
 # OS specific
 .DS_Store

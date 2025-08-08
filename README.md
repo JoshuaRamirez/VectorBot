@@ -1,14 +1,21 @@
 # Local Ollama RAG
 
-A fully local Retrieval-Augmented Generation (RAG) pipeline using LlamaIndex with Ollama. This project provides offline question-answering capabilities by indexing local documents without any external network calls.
+A fully local Retrieval-Augmented Generation (RAG) pipeline using LlamaIndex with Ollama. Ask natural language questions about your documents, with everything running offline on your computer.
+
+## 📖 Documentation
+
+- **[USER_GUIDE.md](USER_GUIDE.md)** - Complete user guide with examples and troubleshooting
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Multi-environment deployment guide
+- **[CLAUDE.md](CLAUDE.md)** - Development guidelines
 
 ## Features
 
 - **100% Local**: No cloud APIs, no telemetry, fully offline after installation
-- **Reuses Existing Models**: Uses your already-installed Ollama chat models
+- **Multi-Environment**: Development, production, and Docker configurations
+- **Executable Distribution**: Single-file deployment with no Python required
+- **Document Support**: PDF, Markdown, text, JSON, CSV files
 - **Persistent Storage**: Indexes are saved to disk for fast subsequent queries
 - **Clean CLI**: Simple command-line interface with doctor, ingest, and query commands
-- **Minimal Dependencies**: Lean, reproducible setup with only essential packages
 
 ## Prerequisites
 
@@ -33,7 +40,38 @@ A fully local Retrieval-Augmented Generation (RAG) pipeline using LlamaIndex wit
 
 ## Quick Start
 
-### 1. Setup
+### Option 1: Using Pre-built Executable (Recommended)
+
+If you have the `rag.exe` file:
+
+1. **Install Ollama** and a chat model:
+   ```bash
+   # Install Ollama from https://ollama.ai
+   ollama pull llama3.1
+   ollama pull nomic-embed-text
+   ```
+
+2. **Verify setup**:
+   ```bash
+   rag doctor
+   ```
+
+3. **Add documents and start querying**:
+   ```bash
+   # Add your documents to docs/ folder
+   mkdir docs
+   cp your-files.pdf docs/
+
+   # Index documents
+   rag ingest
+
+   # Ask questions
+   rag query "What is this document about?"
+   ```
+
+See [USER_GUIDE.md](USER_GUIDE.md) for complete instructions.
+
+### Option 2: From Source
 
 ```bash
 # Clone and enter the project directory
@@ -52,68 +90,28 @@ pip install -e .
 pip install -e ".[dev]"
 ```
 
-### 2. Check System Health
+## Example Workflow
 
 ```bash
-# Using Make (Linux/macOS)
-make doctor
+# 1. Check system status
+rag doctor
 
-# Windows/Direct Python
-python -m rag.cli doctor
-```
+# 2. Add your documents
+mkdir docs
+cp *.pdf docs/
+cp *.md docs/
 
-This will verify:
-- Ollama server is running
-- Available chat models
-- Embedding model status
+# 3. Index documents
+rag ingest
 
-### 3. Pull Embedding Model (if needed)
+# 4. Ask questions
+rag query "What are the main topics covered?"
+rag query "Summarize the key findings" --show-sources
+rag query "What does the document say about security?" --k 8
 
-If the doctor command shows the embedding model is missing:
-```bash
-ollama pull nomic-embed-text
-```
-
-### 4. Add Documents
-
-Place your documents (`.txt`, `.md`, `.pdf`, `.json`, `.csv`) in the `./docs` directory:
-```bash
-mkdir -p docs
-echo "The capital of France is Paris." > docs/sample.txt
-```
-
-### 5. Build Index
-
-```bash
-# Using Make
-make ingest
-
-# Windows/Direct Python
-python -m rag.cli ingest
-```
-
-### 6. Query Your Documents
-
-```bash
-# Using Make
-make query Q="What is the capital of France?"
-
-# Windows/Direct Python
-python -m rag.cli query "What is the capital of France?"
-
-# With options
-python -m rag.cli query "Your question" --k 6 --show-sources
-```
-
-### 7. Run Smoke Test
-
-Verify everything works with an in-memory test:
-```bash
-# Using Make
-make smoke
-
-# Windows/Direct Python
-python scripts/rag_smoke.py
+# 5. Use different environments
+rag --env production ingest
+rag --env development query "How do I deploy this?"
 ```
 
 ## Windows Instructions
@@ -214,6 +212,42 @@ ollama pull mxbai-embed-large
 - **Fully Offline**: After `pip install`, no internet connection is required.
 - **Local Only**: All operations use `localhost` - no external API calls.
 
+## Multi-Environment Support
+
+The application supports different deployment environments:
+
+```bash
+# Development (default)
+rag doctor
+
+# Production deployment
+rag --env production doctor
+
+# Docker deployment  
+rag --env docker doctor
+
+# Show current configuration
+rag --config-info --env production
+```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed multi-environment setup.
+
+## Building Executable
+
+To create a standalone executable:
+
+```bash
+# Build executable (all platforms)
+make build-exe
+
+# Or manually
+python build_executable.py
+```
+
+This creates a single executable file in `dist/rag` (or `dist/rag.exe` on Windows) that includes all dependencies and configuration files. The target system only needs:
+- Ollama installed and running
+- No Python installation required
+
 ## Development
 
 ```bash
@@ -226,7 +260,7 @@ mypy src/
 # Linting
 ruff check src/
 
-# Clean generated files
+# Clean generated files (including build artifacts)
 make clean
 ```
 

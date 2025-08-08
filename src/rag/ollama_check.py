@@ -88,11 +88,11 @@ def ensure_embed_model(base_url: str, model_name: str) -> Tuple[bool, str]:
     return False, f"Embedding model '{model_name}' not found. Run: ollama pull {model_name}"
 
 
-def doctor(verbose: bool = False) -> None:
+def doctor(verbose: bool = False, env_name: Optional[str] = None) -> None:
     """Run diagnostics on Ollama setup."""
     from .config import load_config
     
-    config = load_config()
+    config = load_config(env_name)
     base_url = config["OLLAMA_BASE_URL"]
     
     console.print("[bold]Ollama Health Check[/bold]")

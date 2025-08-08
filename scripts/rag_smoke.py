@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Smoke test script to verify the RAG stack works without disk access."""
 
+import argparse
 import os
 import sys
 from pathlib import Path
@@ -19,12 +20,14 @@ from rag.ollama_check import check_server, choose_chat_model, ensure_embed_model
 console = Console()
 
 
-def run_smoke_test():
+def run_smoke_test(env_name=None):
     """Run a simple smoke test with in-memory documents."""
     console.print("[bold]RAG Smoke Test[/bold]\n")
     
     # Load config
-    config = load_config()
+    if env_name:
+        console.print(f"[dim]Using environment: {env_name}[/dim]\n")
+    config = load_config(env_name)
     base_url = config["OLLAMA_BASE_URL"]
     
     # Check Ollama server
@@ -61,12 +64,13 @@ def run_smoke_test():
         model=chat_model,
         base_url=base_url,
         temperature=0,
-        request_timeout=60.0,
+        request_timeout=config.get("REQUEST_TIMEOUT", 60.0),
     )
     
     Settings.embed_model = OllamaEmbedding(
         model_name=embed_model,
         base_url=base_url,
+        embed_batch_size=config.get("EMBED_BATCH_SIZE", 10),
     )
     
     # Create test documents
@@ -127,4 +131,22 @@ def run_smoke_test():
 
 
 if __name__ == "__main__":
-    sys.exit(run_smoke_test())
+    parser = argparse.ArgumentParser(description="RAG Smoke Test")
+    parser.add_argument(
+        "--env",
+        help="Environment configuration to use (development, production, docker)",
+        default=None,
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Show verbose output",
+    )
+    
+    args = parser.parse_args()
+    
+    # Set verbose mode if requested
+    if args.verbose:
+        os.environ["RAG_VERBOSE"] = "true"
+    
+    sys.exit(run_smoke_test(args.env))

@@ -25,11 +25,21 @@ def main(argv: Optional[list] = None) -> int:
         action="version",
         version=f"%(prog)s {__version__}",
     )
+    parser.add_argument(
+        "--env",
+        help="Environment configuration to use (development, production, docker)",
+        default=None,
+    )
+    parser.add_argument(
+        "--config-info",
+        action="store_true",
+        help="Show configuration information and exit",
+    )
     
     subparsers = parser.add_subparsers(
         dest="command",
         help="Available commands",
-        required=True,
+        required=False,
     )
     
     # Doctor command
@@ -84,16 +94,44 @@ def main(argv: Optional[list] = None) -> int:
     args = parser.parse_args(argv)
     
     try:
+        # Handle config info request
+        if args.config_info:
+            from pathlib import Path
+            from .config import load_config, get_executable_dir
+            
+            config = load_config(args.env)
+            executable_dir = get_executable_dir()
+            
+            console.print("[bold]Configuration Information:[/bold]")
+            console.print(f"Executable directory: {executable_dir}")
+            console.print(f"Environment: {args.env or 'auto-detected'}")
+            console.print("\n[bold]Current configuration:[/bold]")
+            
+            for key, value in config.items():
+                if isinstance(value, Path):
+                    console.print(f"  {key}: {value} ({'exists' if value.exists() else 'will be created'})")
+                else:
+                    console.print(f"  {key}: {value}")
+            
+            return 0
+        
+        # Ensure command is provided if not using config-info
+        if not args.command and not args.config_info:
+            parser.print_help()
+            return 1
+        
+        # Execute commands with environment config
         if args.command == "doctor":
-            doctor(verbose=args.verbose)
+            doctor(verbose=args.verbose, env_name=args.env)
         elif args.command == "ingest":
-            ingest(verbose=args.verbose)
+            ingest(verbose=args.verbose, env_name=args.env)
         elif args.command == "query":
             query(
                 question=args.question,
                 similarity_top_k=args.k,
                 show_sources=args.show_sources,
                 verbose=args.verbose,
+                env_name=args.env,
             )
         return 0
     except KeyboardInterrupt:

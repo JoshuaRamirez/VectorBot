@@ -2,6 +2,7 @@
 
 import os
 import sys
+import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -93,6 +94,7 @@ def test_config_loading():
     """Test configuration loading with defaults."""
     from rag.config import load_config
     
+    # Test default config
     config = load_config()
     
     assert "DOCS_DIR" in config
@@ -100,6 +102,122 @@ def test_config_loading():
     assert "OLLAMA_BASE_URL" in config
     assert config["OLLAMA_BASE_URL"] == "http://localhost:11434"
     assert config["SIMILARITY_TOP_K"] == 4
+    assert "LOG_LEVEL" in config
+    assert "ENABLE_VERBOSE_OUTPUT" in config
+    assert "REQUEST_TIMEOUT" in config
+    assert "EMBED_BATCH_SIZE" in config
+
+
+def test_environment_specific_config():
+    """Test loading different environment configurations."""
+    from rag.config import load_config
+    
+    # Save any existing env vars that might interfere
+    saved_vars = {}
+    test_vars = ["LOG_LEVEL", "ENABLE_VERBOSE_OUTPUT", "REQUEST_TIMEOUT", "EMBED_BATCH_SIZE", "OLLAMA_BASE_URL"]
+    for var in test_vars:
+        if var in os.environ:
+            saved_vars[var] = os.environ[var]
+            del os.environ[var]
+    
+    try:
+        # Test development environment
+        dev_config = load_config(env_name="development")
+        assert dev_config["LOG_LEVEL"] == "DEBUG"
+        assert dev_config["ENABLE_VERBOSE_OUTPUT"] is True
+        
+        # Clear env vars loaded by development config
+        for var in test_vars:
+            if var in os.environ:
+                del os.environ[var]
+        
+        # Test production environment
+        prod_config = load_config(env_name="production")
+        assert prod_config["LOG_LEVEL"] == "INFO"
+        assert prod_config["ENABLE_VERBOSE_OUTPUT"] is False
+        assert prod_config["REQUEST_TIMEOUT"] == 120.0
+        assert prod_config["EMBED_BATCH_SIZE"] == 5
+        
+        # Clear env vars loaded by production config
+        for var in test_vars:
+            if var in os.environ:
+                del os.environ[var]
+        
+        # Test docker environment
+        docker_config = load_config(env_name="docker")
+        assert docker_config["OLLAMA_BASE_URL"] == "http://host.docker.internal:11434"
+    finally:
+        # Restore original env vars
+        for var, value in saved_vars.items():
+            os.environ[var] = value
+
+
+def test_config_validation():
+    """Test configuration validation."""
+    from rag.config import validate_config
+    
+    # Valid config
+    valid_config = {
+        "DOCS_DIR": Path("./docs"),
+        "INDEX_DIR": Path("./index"),
+        "OLLAMA_BASE_URL": "http://localhost:11434",
+        "SIMILARITY_TOP_K": 4
+    }
+    assert validate_config(valid_config) is True
+    
+    # Invalid URL
+    invalid_config = valid_config.copy()
+    invalid_config["OLLAMA_BASE_URL"] = "not-a-url"
+    assert validate_config(invalid_config) is False
+    
+    # Invalid numeric value
+    invalid_config = valid_config.copy()
+    invalid_config["SIMILARITY_TOP_K"] = "not-a-number"
+    assert validate_config(invalid_config) is False
+
+
+def test_executable_dir_detection():
+    """Test executable directory detection."""
+    from rag.config import get_executable_dir
+    
+    exec_dir = get_executable_dir()
+    assert exec_dir.exists()
+    assert exec_dir.is_dir()
+    
+    # Should be the project root when running as script
+    assert (exec_dir / "src").exists() or (exec_dir / "rag").exists()
+
+
+def test_environment_override():
+    """Test environment variable override."""
+    # Save original values
+    orig_k = os.environ.get("SIMILARITY_TOP_K")
+    orig_level = os.environ.get("LOG_LEVEL")
+    
+    try:
+        # Set custom environment variables
+        os.environ["SIMILARITY_TOP_K"] = "10"
+        os.environ["LOG_LEVEL"] = "WARNING"
+        
+        # Import after setting env vars to test override
+        from rag.config import load_config
+        
+        config = load_config()
+        
+        # Environment variables should override config file values
+        assert config["SIMILARITY_TOP_K"] == 10
+        assert config["LOG_LEVEL"] == "WARNING"
+    finally:
+        # Cleanup
+        if orig_k:
+            os.environ["SIMILARITY_TOP_K"] = orig_k
+        elif "SIMILARITY_TOP_K" in os.environ:
+            del os.environ["SIMILARITY_TOP_K"]
+            
+        if orig_level:
+            os.environ["LOG_LEVEL"] = orig_level
+        elif "LOG_LEVEL" in os.environ:
+            del os.environ["LOG_LEVEL"]
 
 
 def test_cli_help():
@@ -111,6 +229,32 @@ def test_cli_help():
     
     # Help should exit with 0
     assert exc_info.value.code == 0
+
+
+def test_cli_config_info():
+    """Test CLI config info command."""
+    from rag.cli import main
+    
+    # Test default config info
+    result = main(["--config-info"])
+    assert result == 0
+    
+    # Test with specific environment
+    result = main(["--config-info", "--env", "production"])
+    assert result == 0
+    
+    result = main(["--config-info", "--env", "docker"])
+    assert result == 0
+
+
+def test_cli_with_environment():
+    """Test CLI commands with environment parameter."""
+    from rag.cli import main
+    
+    # Test doctor with environment (if Ollama running)
+    if check_server("http://localhost:11434"):
+        result = main(["--env", "development", "doctor"])
+        assert result == 0
 
 
 if __name__ == "__main__":

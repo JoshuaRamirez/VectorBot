@@ -17,9 +17,10 @@ def ask(
     similarity_top_k: Optional[int] = None,
     show_sources: bool = False,
     verbose: bool = False,
+    env_name: Optional[str] = None,
 ) -> str:
     """Query the index with a question and return the answer."""
-    config = load_config()
+    config = load_config(env_name)
     index_dir = config["INDEX_DIR"]
     
     if similarity_top_k is None:
@@ -79,10 +80,11 @@ def query(
     similarity_top_k: Optional[int] = None,
     show_sources: bool = False,
     verbose: bool = False,
+    env_name: Optional[str] = None,
 ) -> None:
     """Run a query and print the result."""
     try:
-        answer = ask(question, similarity_top_k, show_sources, verbose)
+        answer = ask(question, similarity_top_k, show_sources, verbose, env_name)
         console.print(f"\n[bold]Answer:[/bold] {answer}")
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
