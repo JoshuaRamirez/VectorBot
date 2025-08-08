@@ -106,15 +106,12 @@ def load_config(env_name: Optional[str] = None) -> Dict[str, Any]:
     executable_dir = get_executable_dir()
     
     def resolve_path(path_str: str, base_dir: Path = None) -> Path:
-        """Resolve a path relative to base directory or executable directory."""
+        """Resolve a path relative to executable directory."""
         path = Path(path_str)
         if path.is_absolute():
             return path
         
-        # Try relative to base directory first, then executable directory
-        if base_dir and (base_dir / path).exists():
-            return (base_dir / path).resolve()
-        
+        # Always resolve relative to executable directory
         return (executable_dir / path).resolve()
     
     # Build configuration
