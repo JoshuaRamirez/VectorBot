@@ -33,6 +33,7 @@ Vector Bot is a fully local Retrieval-Augmented Generation (RAG) pipeline using 
 
 1. **Python 3.10+** installed
 2. **Ollama** installed and running
+
    ```bash
    # Check Ollama version
    ollama --version
@@ -45,6 +46,7 @@ Vector Bot is a fully local Retrieval-Augmented Generation (RAG) pipeline using 
    ```
 
 3. At least one chat model installed in Ollama:
+
    ```bash
    # If you don't have any models, install one:
    ollama pull llama3.1
@@ -52,23 +54,26 @@ Vector Bot is a fully local Retrieval-Augmented Generation (RAG) pipeline using 
 
 ## Quick Start
 
-### Option 1: Using Pre-built Executable (Recommended)
+### Option 1: Using Pre-built Executable (Easiest for most users)
 
 If you have the `vector-bot.exe` file:
 
-1. **Install Ollama** and a chat model:
+1. Install Ollama and a chat model:
+
    ```bash
    # Install Ollama from https://ollama.ai
    ollama pull llama3.1
    ollama pull nomic-embed-text
    ```
 
-2. **Verify setup**:
+2. Verify setup:
+
    ```bash
    vector-bot doctor
    ```
 
-3. **Add documents and start querying**:
+3. Add documents and start querying:
+
    ```bash
    # Add your documents to docs/ folder
    mkdir docs
@@ -83,7 +88,48 @@ If you have the `vector-bot.exe` file:
 
 See [USER_GUIDE.md](USER_GUIDE.md) for complete instructions.
 
-### Option 2: From Source
+### Option 2: Install from NPM (Node.js users)
+
+1. Prerequisite: Ensure Node.js (v18+) and npm are installed:
+
+   ```bash
+   node -v
+   npm -v
+   ```
+
+2. Install globally:
+
+   ```bash
+   npm install -g @joshuaramirez/vector-bot
+   ```
+
+3. Verify setup:
+
+   ```bash
+   vector-bot doctor
+   ```
+
+4. Add documents and index:
+
+   ```bash
+   mkdir docs
+   cp your-files.pdf docs/
+   vector-bot ingest
+   ```
+
+5. Ask questions:
+
+   ```bash
+   vector-bot query "What is this document about?"
+   ```
+
+6. Or run without installing:
+
+   ```bash
+   npx @joshuaramirez/vector-bot --help
+   ```
+
+### Option 3: From Source
 
 ```bash
 # Clone and enter the project directory
@@ -163,7 +209,7 @@ Edit `.env` or set environment variables:
 
 ## Project Structure
 
-```
+```text
 .
 ├── src/rag/          # Main package (vector-bot)
 │   ├── cli.py        # CLI interface
@@ -181,6 +227,7 @@ Edit `.env` or set environment variables:
 ## Troubleshooting
 
 ### Ollama Server Not Running
+
 ```bash
 # Start Ollama
 ollama serve
@@ -190,6 +237,7 @@ curl http://localhost:11434/api/version
 ```
 
 ### No Models Found
+
 ```bash
 # List available models
 ollama list
@@ -199,16 +247,21 @@ ollama pull llama3.1
 ```
 
 ### Port Conflicts
+
 If Ollama is running on a different port, update `.env`:
-```
+
+```bash
 OLLAMA_BASE_URL=http://localhost:YOUR_PORT
 ```
 
 ### Large Files Skipped
+
 Files over 20MB are automatically skipped during ingestion. Split large documents or adjust the limit in the code if needed.
 
 ### Missing Embedding Model
+
 The default embedding model is `nomic-embed-text`. If not installed:
+
 ```bash
 ollama pull nomic-embed-text
 
@@ -257,6 +310,7 @@ python build_executable.py
 ```
 
 This creates a single executable file in `dist/vector-bot` (or `dist/vector-bot.exe` on Windows) that includes all dependencies and configuration files. The target system only needs:
+
 - Ollama installed and running
 - No Python installation required
 
@@ -293,6 +347,7 @@ make clean
 ### Testing
 
 The project includes comprehensive testing:
+
 - **114 unit tests** passing (99.1% pass rate)
 - **99% code coverage** across all modules
 - **100% mocked external dependencies** - tests run offline

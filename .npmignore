@@ -1,0 +1,77 @@
+# Python files (not needed for npm package)
+*.py
+*.pyc
+__pycache__/
+*.egg-info/
+src/rag/
+scripts/rag_smoke.py
+
+# Python build files
+build/
+dist/
+*.whl
+*.egg
+
+# Development files
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# Test files
+tests/
+pytest.ini
+run_tests.py
+
+# Documentation not needed for npm
+ARCHITECTURE.md
+CONFIGURATION.md
+DEPLOYMENT.md
+TESTING.md
+CLAUDE.md
+
+# Build configuration
+pyproject.toml
+build_executable.py
+setup.py
+requirements*.txt
+
+# Git and CI/CD
+.git/
+.github/
+.gitignore
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Config files
+.env*
+!.env.example
+configs/
+
+# Data directories
+docs/
+index_storage/
+rag_storage/
+
+# Keep only what's needed for npm
+!bin/
+!lib/
+!scripts/install.js
+!package.json
+!package-lock.json
+!README.md
+!LICENSE
+!tsconfig.json

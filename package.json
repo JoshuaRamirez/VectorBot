@@ -1,0 +1,50 @@
+{
+  "name": "@joshuaramirez/vector-bot",
+  "version": "1.0.0",
+  "description": "Vector Bot: A fully local RAG pipeline using LlamaIndex with Ollama",
+  "bin": {
+    "vector-bot": "./bin/vector-bot.js"
+  },
+  "scripts": {
+    "postinstall": "node scripts/install.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joshuaramirez/vector-bot.git"
+  },
+  "keywords": [
+    "vector-bot",
+    "rag",
+    "ollama",
+    "llama-index",
+    "ai",
+    "machine-learning",
+    "nlp",
+    "local",
+    "offline",
+    "embeddings",
+    "llm",
+    "retrieval-augmented-generation"
+  ],
+  "author": "joshuaramirez",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/joshuaramirez/vector-bot/issues"
+  },
+  "homepage": "https://github.com/joshuaramirez/vector-bot#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "commander": "^11.0.0",
+    "ora": "^5.4.1",
+    "chalk": "^4.1.2",
+    "which": "^3.0.0"
+  },
+  "files": [
+    "bin/",
+    "scripts/",
+    "README.md",
+    "LICENSE"
+  ]
+}
