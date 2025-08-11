@@ -1,12 +1,12 @@
-# Local Ollama RAG
+# Vector Bot
 
-[![CI](https://github.com/yourusername/local-ollama-rag-poc/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/local-ollama-rag-poc/actions/workflows/ci.yml)
-[![Security](https://github.com/yourusername/local-ollama-rag-poc/actions/workflows/security.yml/badge.svg)](https://github.com/yourusername/local-ollama-rag-poc/actions/workflows/security.yml)
-[![Test Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](https://github.com/yourusername/local-ollama-rag-poc)
-[![Tests](https://img.shields.io/badge/tests-114%20passing-brightgreen.svg)](https://github.com/yourusername/local-ollama-rag-poc)
+[![CI](https://github.com/joshuaramirez/vector-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/joshuaramirez/vector-bot/actions/workflows/ci.yml)
+[![Security](https://github.com/joshuaramirez/vector-bot/actions/workflows/security.yml/badge.svg)](https://github.com/joshuaramirez/vector-bot/actions/workflows/security.yml)
+[![Test Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](https://github.com/joshuaramirez/vector-bot)
+[![Tests](https://img.shields.io/badge/tests-135%20passing-brightgreen.svg)](https://github.com/joshuaramirez/vector-bot)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A fully local Retrieval-Augmented Generation (RAG) pipeline using LlamaIndex with Ollama. Ask natural language questions about your documents, with everything running offline on your computer.
+Vector Bot is a fully local Retrieval-Augmented Generation (RAG) pipeline using LlamaIndex with Ollama. Ask natural language questions about your documents, with everything running offline on your computer.
 
 ## 📖 Documentation
 
@@ -26,7 +26,7 @@ A fully local Retrieval-Augmented Generation (RAG) pipeline using LlamaIndex wit
 - **Persistent Storage**: Indexes are saved to disk for fast subsequent queries
 - **Clean CLI**: Simple command-line interface with doctor, ingest, and query commands
 - **CI/CD Pipeline**: Automated testing, building, and PyPI publishing
-- **Comprehensive Testing**: 114 passing tests with 99% code coverage
+- **Comprehensive Testing**: 135 passing tests with 99% code coverage
 - **Security Scanning**: Automated vulnerability detection and CodeQL analysis
 
 ## Prerequisites
@@ -54,7 +54,7 @@ A fully local Retrieval-Augmented Generation (RAG) pipeline using LlamaIndex wit
 
 ### Option 1: Using Pre-built Executable (Recommended)
 
-If you have the `rag.exe` file:
+If you have the `vector-bot.exe` file:
 
 1. **Install Ollama** and a chat model:
    ```bash
@@ -65,7 +65,7 @@ If you have the `rag.exe` file:
 
 2. **Verify setup**:
    ```bash
-   rag doctor
+   vector-bot doctor
    ```
 
 3. **Add documents and start querying**:
@@ -75,10 +75,10 @@ If you have the `rag.exe` file:
    cp your-files.pdf docs/
 
    # Index documents
-   rag ingest
+   vector-bot ingest
 
    # Ask questions
-   rag query "What is this document about?"
+   vector-bot query "What is this document about?"
    ```
 
 See [USER_GUIDE.md](USER_GUIDE.md) for complete instructions.
@@ -87,7 +87,7 @@ See [USER_GUIDE.md](USER_GUIDE.md) for complete instructions.
 
 ```bash
 # Clone and enter the project directory
-cd local-ollama-rag
+cd vector-bot
 
 # Copy environment template
 cp .env.example .env
@@ -106,7 +106,7 @@ pip install -e ".[dev]"
 
 ```bash
 # 1. Check system status
-rag doctor
+vector-bot doctor
 
 # 2. Add your documents
 mkdir docs
@@ -114,16 +114,16 @@ cp *.pdf docs/
 cp *.md docs/
 
 # 3. Index documents
-rag ingest
+vector-bot ingest
 
 # 4. Ask questions
-rag query "What are the main topics covered?"
-rag query "Summarize the key findings" --show-sources
-rag query "What does the document say about security?" --k 8
+vector-bot query "What are the main topics covered?"
+vector-bot query "Summarize the key findings" --show-sources
+vector-bot query "What does the document say about security?" --k 8
 
 # 5. Use different environments
-rag --env production ingest
-rag --env development query "How do I deploy this?"
+vector-bot --env production ingest
+vector-bot --env development query "How do I deploy this?"
 ```
 
 ## Windows Instructions
@@ -165,7 +165,7 @@ Edit `.env` or set environment variables:
 
 ```
 .
-├── src/rag/          # Main package
+├── src/rag/          # Main package (vector-bot)
 │   ├── cli.py        # CLI interface
 │   ├── config.py     # Configuration management
 │   ├── ingest.py     # Document ingestion
@@ -230,16 +230,16 @@ The application supports different deployment environments:
 
 ```bash
 # Development (default)
-rag doctor
+vector-bot doctor
 
 # Production deployment
-rag --env production doctor
+vector-bot --env production doctor
 
 # Docker deployment  
-rag --env docker doctor
+vector-bot --env docker doctor
 
 # Show current configuration
-rag --config-info --env production
+vector-bot --config-info --env production
 ```
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed multi-environment setup.
@@ -256,7 +256,7 @@ make build-exe
 python build_executable.py
 ```
 
-This creates a single executable file in `dist/rag` (or `dist/rag.exe` on Windows) that includes all dependencies and configuration files. The target system only needs:
+This creates a single executable file in `dist/vector-bot` (or `dist/vector-bot.exe` on Windows) that includes all dependencies and configuration files. The target system only needs:
 - Ollama installed and running
 - No Python installation required
 
@@ -271,7 +271,7 @@ pytest tests/ -v
 pytest tests/unit/ -v
 
 # Run with coverage
-pytest tests/ --cov=rag --cov-report=html
+pytest tests/ --cov=src/rag --cov-report=html
 
 # Type checking
 mypy src/

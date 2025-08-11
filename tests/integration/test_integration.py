@@ -13,7 +13,7 @@ from llama_index.core import Document, VectorStoreIndex
 from rag.ollama_check import check_server
 
 
-def test_ollama_not_required_for_import():
+def test_ollama_not_required_for_import() -> None:
     """Test that modules can be imported without Ollama running."""
     try:
         from rag import __version__
@@ -28,7 +28,7 @@ def test_ollama_not_required_for_import():
     not check_server("http://localhost:11434"),
     reason="Ollama server not running - skipping integration test",
 )
-def test_simple_query_with_ollama():
+def test_simple_query_with_ollama() -> None:
     """Test a simple query if Ollama is available."""
     from llama_index.core import Settings
     from llama_index.embeddings.ollama import OllamaEmbedding
@@ -88,7 +88,7 @@ def test_simple_query_with_ollama():
     assert "paris" in answer or len(answer) > 0
 
 
-def test_config_loading():
+def test_config_loading() -> None:
     """Test configuration loading with defaults."""
     from rag.config import load_config
     
@@ -106,7 +106,7 @@ def test_config_loading():
     assert "EMBED_BATCH_SIZE" in config
 
 
-def test_environment_specific_config():
+def test_environment_specific_config() -> None:
     """Test loading different environment configurations."""
     from rag.config import load_config
     
@@ -150,7 +150,7 @@ def test_environment_specific_config():
             os.environ[var] = value
 
 
-def test_config_validation():
+def test_config_validation() -> None:
     """Test configuration validation."""
     from rag.config import validate_config
     
@@ -174,7 +174,7 @@ def test_config_validation():
     assert validate_config(invalid_config) is False
 
 
-def test_executable_dir_detection():
+def test_executable_dir_detection() -> None:
     """Test executable directory detection."""
     from rag.config import get_executable_dir
     
@@ -186,7 +186,7 @@ def test_executable_dir_detection():
     assert (exec_dir / "src").exists() or (exec_dir / "rag").exists()
 
 
-def test_environment_override():
+def test_environment_override() -> None:
     """Test environment variable override."""
     # Save original values
     orig_k = os.environ.get("SIMILARITY_TOP_K")
@@ -218,7 +218,7 @@ def test_environment_override():
             del os.environ["LOG_LEVEL"]
 
 
-def test_cli_help():
+def test_cli_help() -> None:
     """Test CLI help output."""
     from rag.cli import main
     
@@ -229,7 +229,7 @@ def test_cli_help():
     assert exc_info.value.code == 0
 
 
-def test_cli_config_info():
+def test_cli_config_info() -> None:
     """Test CLI config info command."""
     from rag.cli import main
     
@@ -245,7 +245,7 @@ def test_cli_config_info():
     assert result == 0
 
 
-def test_cli_with_environment():
+def test_cli_with_environment() -> None:
     """Test CLI commands with environment parameter."""
     from rag.cli import main
     

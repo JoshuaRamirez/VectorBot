@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, MagicMock
 import pytest
 
 
@@ -322,17 +322,8 @@ class TestResolvePath:
     def test_LoadConfig_KeepsAbsolutePaths_Unchanged(self, clean_environment):
         """Test that absolute paths are kept unchanged."""
         # Arrange
-        # Use platform-appropriate absolute paths
-        import sys
-        if sys.platform == "win32":
-            abs_docs = "C:\\absolute\\docs"
-            abs_index = "C:\\absolute\\index"
-        else:
-            abs_docs = "/absolute/docs"
-            abs_index = "/absolute/index"
-        
-        os.environ["DOCS_DIR"] = abs_docs
-        os.environ["INDEX_DIR"] = abs_index
+        os.environ["DOCS_DIR"] = "/absolute/docs"
+        os.environ["INDEX_DIR"] = "/absolute/index"
         
         with patch('rag.config.load_environment_config'):
             with patch('rag.config.get_executable_dir') as mock_get_dir:
@@ -344,5 +335,5 @@ class TestResolvePath:
                     config = load_config()
                     
                     # Assert
-                    assert config["DOCS_DIR"] == Path(abs_docs)
-                    assert config["INDEX_DIR"] == Path(abs_index)
+                    assert config["DOCS_DIR"] == Path("/absolute/docs")
+                    assert config["INDEX_DIR"] == Path("/absolute/index")

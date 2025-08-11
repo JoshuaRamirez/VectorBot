@@ -1,9 +1,9 @@
-"""Test configuration and shared fixtures for the RAG application tests."""
+"""Test configuration and shared fixtures for Vector Bot tests."""
 
 import os
 import sys
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any, Dict, List, Optional
 from unittest.mock import MagicMock, Mock
 
 import pytest
@@ -42,7 +42,7 @@ def mock_models_list() -> List[str]:
 
 
 @pytest.fixture
-def mock_requests_get():
+def mock_requests_get() -> Any:
     """Mock requests.get for HTTP calls."""
     from unittest.mock import patch
     mock_response = Mock()
@@ -60,7 +60,7 @@ def mock_requests_get():
 
 
 @pytest.fixture
-def mock_subprocess_run():
+def mock_subprocess_run() -> Any:
     """Mock subprocess.run for CLI command execution."""
     from unittest.mock import patch
     mock_result = Mock()
@@ -72,7 +72,7 @@ def mock_subprocess_run():
 
 
 @pytest.fixture
-def mock_path_exists():
+def mock_path_exists() -> Any:
     """Mock Path.exists() method."""
     from unittest.mock import patch
     with patch.object(Path, "exists", return_value=True) as mock:
@@ -80,7 +80,7 @@ def mock_path_exists():
 
 
 @pytest.fixture
-def mock_path_mkdir():
+def mock_path_mkdir() -> Any:
     """Mock Path.mkdir() method."""
     from unittest.mock import patch
     with patch.object(Path, "mkdir") as mock:
@@ -88,7 +88,7 @@ def mock_path_mkdir():
 
 
 @pytest.fixture
-def mock_load_dotenv():
+def mock_load_dotenv() -> Any:
     """Mock dotenv loading."""
     from unittest.mock import patch
     with patch("rag.config.load_dotenv") as mock:
@@ -96,12 +96,12 @@ def mock_load_dotenv():
 
 
 @pytest.fixture
-def mock_console():
+def mock_console() -> Any:
     """Mock Rich console for output testing."""
     from unittest.mock import patch, MagicMock
     
     # Create mocks for all modules that use console
-    mocks = {}
+    mocks: dict[str, Any] = {}
     
     # Patch console in all modules that use it
     with patch("rag.config.console") as config_mock:
@@ -121,7 +121,7 @@ def mock_console():
 
 
 @pytest.fixture
-def mock_llama_index_settings():
+def mock_llama_index_settings() -> Any:
     """Mock LlamaIndex Settings object."""
     from unittest.mock import patch
     with patch("llama_index.core.Settings") as mock:
@@ -131,7 +131,7 @@ def mock_llama_index_settings():
 
 
 @pytest.fixture
-def mock_ollama_llm():
+def mock_ollama_llm() -> Any:
     """Mock Ollama LLM class."""
     from unittest.mock import patch
     with patch("llama_index.llms.ollama.Ollama") as mock:
@@ -139,7 +139,7 @@ def mock_ollama_llm():
 
 
 @pytest.fixture
-def mock_ollama_embedding():
+def mock_ollama_embedding() -> Any:
     """Mock Ollama embedding class."""
     from unittest.mock import patch
     with patch("llama_index.embeddings.ollama.OllamaEmbedding") as mock:
@@ -147,7 +147,7 @@ def mock_ollama_embedding():
 
 
 @pytest.fixture
-def mock_simple_directory_reader():
+def mock_simple_directory_reader() -> Any:
     """Mock SimpleDirectoryReader for document loading."""
     from unittest.mock import patch
     mock_reader = Mock()
@@ -162,7 +162,7 @@ def mock_simple_directory_reader():
 
 
 @pytest.fixture
-def mock_vector_store_index():
+def mock_vector_store_index() -> Any:
     """Mock VectorStoreIndex for indexing operations."""
     from unittest.mock import patch
     mock_index = Mock()
@@ -177,7 +177,7 @@ def mock_vector_store_index():
 
 
 @pytest.fixture
-def mock_storage_context():
+def mock_storage_context() -> Any:
     """Mock StorageContext for index persistence."""
     from unittest.mock import patch
     mock_context = Mock()
@@ -187,7 +187,7 @@ def mock_storage_context():
 
 
 @pytest.fixture
-def mock_load_index_from_storage():
+def mock_load_index_from_storage() -> Any:
     """Mock load_index_from_storage function."""
     from unittest.mock import patch
     mock_index = Mock()
@@ -196,7 +196,7 @@ def mock_load_index_from_storage():
 
 
 @pytest.fixture
-def clean_environment():
+def clean_environment() -> Any:
     """Clean environment variables before and after test."""
     # Store original values
     original_env = {}
@@ -223,7 +223,7 @@ def clean_environment():
 
 
 @pytest.fixture
-def temp_files(tmp_path):
+def temp_files(tmp_path: Any) -> Any:
     """Create temporary files for testing file operations."""
     # Create test directories
     docs_dir = tmp_path / "docs"
@@ -251,16 +251,16 @@ def temp_files(tmp_path):
 class MockQueryResponse:
     """Mock query response object for testing."""
     
-    def __init__(self, text: str = "Mock response", source_nodes: List = None):
+    def __init__(self, text: str = "Mock response", source_nodes: Optional[list[Any]] = None):
         self.text = text
         self.source_nodes = source_nodes or []
     
-    def __str__(self):
+    def __str__(self) -> str:
         return self.text
 
 
 @pytest.fixture
-def mock_query_response():
+def mock_query_response() -> Any:
     """Provide a mock query response."""
     mock_node = Mock()
     mock_node.metadata = {"file_name": "test.txt"}

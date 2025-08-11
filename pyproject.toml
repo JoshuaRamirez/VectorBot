@@ -3,14 +3,14 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "local-ollama-rag"
+name = "vector-bot"
 version = "1.0.0"
-description = "Fully local RAG pipeline using LlamaIndex with Ollama"
-authors = [{name = "Local RAG Developer"}]
+description = "Vector Bot: A fully local RAG pipeline using LlamaIndex with Ollama"
+authors = [{name = "Vector Bot Developer"}]
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
-keywords = ["rag", "ollama", "llama-index", "local", "offline", "embeddings", "llm"]
+keywords = ["vector-bot", "rag", "ollama", "llama-index", "local", "offline", "embeddings", "llm"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -24,11 +24,6 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-[project.urls]
-Homepage = "https://github.com/yourusername/local-ollama-rag-poc"
-Repository = "https://github.com/yourusername/local-ollama-rag-poc"
-Issues = "https://github.com/yourusername/local-ollama-rag-poc/issues"
-Changelog = "https://github.com/yourusername/local-ollama-rag-poc/blob/main/CHANGELOG.md"
 dependencies = [
     "llama-index-core>=0.10.0",
     "llama-index-llms-ollama>=0.1.0",
@@ -37,6 +32,12 @@ dependencies = [
     "requests>=2.31.0",
     "rich>=13.7.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/joshuaramirez/vector-bot"
+Repository = "https://github.com/joshuaramirez/vector-bot"
+Issues = "https://github.com/joshuaramirez/vector-bot/issues"
+Changelog = "https://github.com/joshuaramirez/vector-bot/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
@@ -47,7 +48,7 @@ dev = [
 ]
 
 [project.scripts]
-rag = "rag.cli:main"
+vector-bot = "rag.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

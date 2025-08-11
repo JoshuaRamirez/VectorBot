@@ -1,5 +1,7 @@
 """Unit tests for the version module."""
 
+import pytest
+
 
 class TestVersion:
     """Test cases for version module functionality."""

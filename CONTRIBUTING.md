@@ -1,6 +1,6 @@
-# Contributing to Local Ollama RAG
+# Contributing to Vector Bot
 
-Thank you for your interest in contributing to Local Ollama RAG! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to Vector Bot! This document provides guidelines and information for contributors.
 
 ## Code of Conduct
 
@@ -18,8 +18,8 @@ This project adheres to a code of conduct that promotes respectful, inclusive co
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/local-ollama-rag-poc.git
-   cd local-ollama-rag-poc
+   git clone https://github.com/joshuaramirez/vector-bot.git
+   cd vector-bot
    ```
 
 2. **Create a virtual environment:**
@@ -72,7 +72,7 @@ This project adheres to a code of conduct that promotes respectful, inclusive co
    ```bash
    python -m build
    pip install dist/*.whl
-   rag --help
+   vector-bot --help
    ```
 
 ### Code Standards
@@ -101,7 +101,7 @@ Before submitting:
 pytest tests/ -v
 
 # Check coverage
-pytest tests/ --cov=rag --cov-report=term-missing
+pytest tests/ --cov=vector-bot --cov-report=term-missing
 
 # Verify coverage is >= 95%
 # All tests should pass (currently 135 passing tests)

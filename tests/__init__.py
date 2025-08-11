@@ -1,1 +1,1 @@
-"""Unit tests package for the local-ollama-rag project."""
+"""Unit tests package for the vector-bot project."""

@@ -1,4 +1,4 @@
-# Configuration Guide - Local Ollama RAG
+# Configuration Guide - Vector Bot
 
 ## Table of Contents
 
@@ -15,7 +15,7 @@
 
 ## Configuration Overview
 
-Local Ollama RAG uses a **hierarchical configuration system** that allows flexible customization while providing sensible defaults. Configuration can be set through:
+Vector Bot uses a **hierarchical configuration system** that allows flexible customization while providing sensible defaults. Configuration can be set through:
 
 - **Environment variables** (highest priority)
 - **Configuration files** (medium priority)
@@ -221,8 +221,8 @@ Configuration values are applied in this order (highest to lowest priority):
 ### 1. Command Line Arguments
 ```bash
 # Override any setting via CLI
-SIMILARITY_TOP_K=8 rag query "test"
-DOCS_DIR=/custom/path rag ingest
+SIMILARITY_TOP_K=8 vector-bot query "test"
+DOCS_DIR=/custom/path vector-bot ingest
 ```
 
 ### 2. Environment Variables
@@ -230,27 +230,27 @@ DOCS_DIR=/custom/path rag ingest
 # Set in shell session
 export SIMILARITY_TOP_K=6
 export LOG_LEVEL=DEBUG
-rag query "test"
+vector-bot query "test"
 ```
 
 ### 3. Local .env File
 ```bash
 # In current directory
 echo "SIMILARITY_TOP_K=5" > .env
-rag query "test"  # Uses 5
+vector-bot query "test"  # Uses 5
 ```
 
 ### 4. Environment Profile Files
 ```bash
 # Via --env flag or RAG_ENV variable
-rag --env production query "test"    # Uses configs/production.env
-RAG_ENV=docker rag query "test"      # Uses configs/docker.env
+vector-bot --env production query "test"    # Uses configs/production.env
+RAG_ENV=docker vector-bot query "test"      # Uses configs/docker.env
 ```
 
 ### 5. Built-in Defaults
 ```bash
 # When nothing else is specified
-rag query "test"  # Uses SIMILARITY_TOP_K=4
+vector-bot query "test"  # Uses SIMILARITY_TOP_K=4
 ```
 
 ### Priority Example
@@ -259,7 +259,7 @@ rag query "test"  # Uses SIMILARITY_TOP_K=4
 # configs/development.env: SIMILARITY_TOP_K=4
 # .env: SIMILARITY_TOP_K=6
 # Environment: SIMILARITY_TOP_K=8
-# Command: SIMILARITY_TOP_K=10 rag query "test"
+# Command: SIMILARITY_TOP_K=10 vector-bot query "test"
 
 # Result: Uses SIMILARITY_TOP_K=10 (command line wins)
 ```
@@ -271,20 +271,20 @@ rag query "test"  # Uses SIMILARITY_TOP_K=4
 #### Via Command Line Flag
 ```bash
 # Specify environment explicitly
-rag --env development doctor
-rag --env production ingest  
-rag --env docker query "test"
+vector-bot --env development doctor
+vector-bot --env production ingest  
+vector-bot --env docker query "test"
 ```
 
 #### Via Environment Variable
 ```bash
 # Set environment for session
 export RAG_ENV=production
-rag doctor    # Uses production settings
-rag ingest    # Uses production settings
+vector-bot doctor    # Uses production settings
+vector-bot ingest    # Uses production settings
 
 # Override for single command
-RAG_ENV=development rag doctor
+RAG_ENV=development vector-bot doctor
 ```
 
 #### Via Configuration File Selection
@@ -325,9 +325,9 @@ def resolve_path(path_str: str) -> Path:
 
 ### Executable vs. Script Mode
 
-#### Executable Mode (rag.exe)
+#### Executable Mode (vector-bot.exe)
 ```bash
-# Executable location: C:\Tools\rag.exe
+# Executable location: C:\Tools\vector-bot.exe
 DOCS_DIR=./docs        # Resolves to: C:\Tools\docs\
 INDEX_DIR=./storage    # Resolves to: C:\Tools\storage\
 ```
@@ -376,7 +376,7 @@ DOCS_DIR="/home/user/My Documents"
 #### Show Current Configuration
 ```bash
 # Show all settings with current values
-rag --config-info
+vector-bot --config-info
 
 # Output includes:
 # - Executable directory
@@ -388,15 +388,15 @@ rag --config-info
 #### Show Environment-Specific Configuration
 ```bash
 # Check specific environment settings
-rag --config-info --env production
-rag --config-info --env development
-rag --config-info --env docker
+vector-bot --config-info --env production
+vector-bot --config-info --env development
+vector-bot --config-info --env docker
 ```
 
 #### Verbose Configuration Loading
 ```bash
 # See which config files are being loaded
-RAG_VERBOSE=true rag --config-info
+RAG_VERBOSE=true vector-bot --config-info
 
 # Output shows:
 # Loaded config from: /path/to/configs/development.env
@@ -407,7 +407,7 @@ RAG_VERBOSE=true rag --config-info
 #### System Health Check
 ```bash
 # Verify all components are configured correctly
-rag doctor
+vector-bot doctor
 
 # Checks:
 # - Ollama server connectivity
@@ -419,10 +419,10 @@ rag doctor
 #### Environment-Specific Health Check
 ```bash
 # Check production configuration
-rag --env production doctor
+vector-bot --env production doctor
 
 # Check development configuration  
-rag --env development doctor
+vector-bot --env development doctor
 ```
 
 ## Examples
@@ -434,8 +434,8 @@ rag --env development doctor
 # Use defaults for everything
 mkdir docs
 echo "My content" > docs/test.txt
-rag ingest
-rag query "What is the content?"
+vector-bot ingest
+vector-bot query "What is the content?"
 ```
 
 #### Custom Paths
@@ -443,25 +443,25 @@ rag query "What is the content?"
 # Use custom document location
 export DOCS_DIR=/home/user/research-papers
 export INDEX_DIR=/home/user/rag-index
-rag ingest
+vector-bot ingest
 ```
 
 #### Remote Ollama Server
 ```bash
 # Connect to Ollama on another machine
 export OLLAMA_BASE_URL=http://192.168.1.100:11434
-rag doctor  # Test connection
+vector-bot doctor  # Test connection
 ```
 
 #### Performance Tuning
 ```bash
 # More context for complex questions
 export SIMILARITY_TOP_K=8
-rag query "Explain the complex relationship between..."
+vector-bot query "Explain the complex relationship between..."
 
 # Faster processing with smaller batches
 export EMBED_BATCH_SIZE=3
-rag ingest
+vector-bot ingest
 ```
 
 ### Advanced Configuration Examples
@@ -488,25 +488,25 @@ EOF
 #### Development vs. Production
 ```bash
 # Development (verbose, local paths)
-rag --env development ingest
-rag --env development query "test" --verbose
+vector-bot --env development ingest
+vector-bot --env development query "test" --verbose
 
 # Production (quiet, absolute paths)  
-rag --env production ingest
-rag --env production query "test"
+vector-bot --env production ingest
+vector-bot --env production query "test"
 ```
 
 #### Docker Deployment
 ```dockerfile
 # Dockerfile
 FROM python:3.10
-COPY rag.exe /app/
+COPY vector-bot.exe /app/
 WORKDIR /app
 ENV RAG_ENV=docker
 ENV DOCS_DIR=/data/docs
 ENV INDEX_DIR=/data/index
 VOLUME ["/data"]
-ENTRYPOINT ["./rag.exe"]
+ENTRYPOINT ["./vector-bot.exe"]
 ```
 
 ```bash
@@ -526,11 +526,11 @@ set SIMILARITY_TOP_K=6
 set LOG_LEVEL=INFO
 
 echo Ingesting documents...
-rag.exe ingest
+vector-bot.exe ingest
 
 echo Asking questions...
-rag.exe query "What are the main topics?"
-rag.exe query "Summarize key findings"
+vector-bot.exe query "What are the main topics?"
+vector-bot.exe query "Summarize key findings"
 ```
 
 #### Unix Shell Script
@@ -548,7 +548,7 @@ QUESTIONS_FILE="questions.txt"
 # Process each question
 while IFS= read -r question; do
     echo "Q: $question"
-    rag query "$question" --show-sources
+    vector-bot query "$question" --show-sources
     echo "---"
 done < "$QUESTIONS_FILE"
 ```
@@ -560,7 +560,7 @@ done < "$QUESTIONS_FILE"
 #### Issue: "Configuration validation failed"
 ```bash
 # Check configuration validity
-rag --config-info
+vector-bot --config-info
 
 # Common causes:
 # - Invalid URL format
@@ -582,7 +582,7 @@ ollama serve
 #### Issue: "No documents found"
 ```bash
 # Check document path configuration
-rag --config-info | grep DOCS_DIR
+vector-bot --config-info | grep DOCS_DIR
 
 # Verify documents exist
 ls $DOCS_DIR
@@ -608,7 +608,7 @@ ollama pull llama3.1
 #### Debug Configuration Loading
 ```bash
 # See which files are loaded
-RAG_VERBOSE=true rag --config-info
+RAG_VERBOSE=true vector-bot --config-info
 
 # Check environment variables
 env | grep -E "(DOCS_DIR|OLLAMA|SIMILARITY|RAG_)"
@@ -621,18 +621,18 @@ cat configs/development.env
 #### Verify Path Resolution
 ```bash
 # Check where paths are resolved
-rag --config-info
+vector-bot --config-info
 
 # Test absolute vs relative paths
-DOCS_DIR=./test-docs rag --config-info
-DOCS_DIR=/tmp/test-docs rag --config-info
+DOCS_DIR=./test-docs vector-bot --config-info
+DOCS_DIR=/tmp/test-docs vector-bot --config-info
 ```
 
 #### Test Configuration Override
 ```bash
 # Test priority system
 echo "SIMILARITY_TOP_K=5" > .env
-SIMILARITY_TOP_K=8 rag --config-info
+SIMILARITY_TOP_K=8 vector-bot --config-info
 # Should show SIMILARITY_TOP_K: 8
 ```
 
@@ -654,7 +654,7 @@ REQUEST_TIMEOUT=90.0
 EOF
 
 # Use custom environment
-rag --env staging doctor
+vector-bot --env staging doctor
 ```
 
 #### Programmatic Configuration
@@ -682,7 +682,7 @@ print(result.stdout)
 ```bash
 # Load from remote config
 curl -s http://config-server/rag-config > .env
-rag --config-info
+vector-bot --config-info
 ```
 
 #### Dynamic Configuration
@@ -696,7 +696,7 @@ else
     export DOCS_DIR=./docs
 fi
 
-rag ingest
+vector-bot ingest
 ```
 
 #### Configuration Validation Script
@@ -753,4 +753,4 @@ export EMBED_BATCH_SIZE=5          # Smaller batches to reduce request size
 
 ---
 
-This comprehensive configuration guide covers all aspects of configuring Local Ollama RAG for any deployment scenario, from simple local use to complex multi-environment production deployments.
+This comprehensive configuration guide covers all aspects of configuring Vector Bot for any deployment scenario, from simple local use to complex multi-environment production deployments.

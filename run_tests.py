@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test runner script for the Local Ollama RAG project."""
+"""Test runner script for the Vector Bot project."""
 
 import sys
 import subprocess

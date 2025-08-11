@@ -1,26 +1,26 @@
-# Quick Reference - Local Ollama RAG
+# Quick Reference - Vector Bot
 
 ## Essential Commands
 
 ```bash
 # System check
-rag doctor
+vector-bot doctor
 
 # Index documents
-rag ingest
+vector-bot ingest
 
 # Query documents
-rag query "your question"
+vector-bot query "your question"
 
 # Show configuration
-rag --config-info
+vector-bot --config-info
 ```
 
 ## File Structure
 
 ```
 your-project/
-├── rag.exe           # Executable
+├── vector-bot.exe           # Executable
 ├── docs/             # Your documents go here
 ├── index_storage/    # Generated index (don't edit)
 └── .env              # Optional config file
@@ -40,20 +40,20 @@ your-project/
 ```bash
 ollama pull llama3.1                    # Install AI model
 ollama pull nomic-embed-text            # Install embedder
-rag doctor                              # Check setup
+vector-bot doctor                              # Check setup
 ```
 
 ### Daily Workflow
 ```bash
 cp new-document.pdf docs/               # Add document
-rag ingest                              # Update index
-rag query "What's new in this doc?"     # Ask question
+vector-bot ingest                              # Update index
+vector-bot query "What's new in this doc?"     # Ask question
 ```
 
 ### Advanced Queries
 ```bash
-rag query "summary?" --k 8              # More context
-rag query "details?" --show-sources     # Show sources
+vector-bot query "summary?" --k 8              # More context
+vector-bot query "details?" --show-sources     # Show sources
 ```
 
 ## Environment Variables
@@ -71,7 +71,7 @@ rag query "details?" --show-sources     # Show sources
 | "Server not running" | `ollama serve` |
 | "No models" | `ollama pull llama3.1` |
 | "No documents found" | Add files to `docs/` |
-| "Index not found" | Run `rag ingest` |
+| "Index not found" | Run `vector-bot ingest` |
 
 ## Development Commands
 
@@ -95,10 +95,10 @@ bandit -r src/
 ## Quick Tips
 
 - **Add documents**: Drop files in `docs/` folder
-- **Re-index**: Run `rag ingest` after adding files
+- **Re-index**: Run `vector-bot ingest` after adding files
 - **Better answers**: Try `--k 6` for more context
 - **Find sources**: Use `--show-sources` flag
-- **Check config**: Use `rag --config-info`
+- **Check config**: Use `vector-bot --config-info`
 - **Run tests**: Use `pytest tests/` or `python run_tests.py`
 - **Contribute**: See [CONTRIBUTING.md](CONTRIBUTING.md)
 

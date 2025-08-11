@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build script to create executable from the RAG CLI."""
+"""Build script to create executable from Vector Bot CLI."""
 
 import importlib.util
 import subprocess
@@ -15,7 +15,7 @@ def build_executable():
         subprocess.run([sys.executable, "-m", "pip", "install", "pyinstaller"], check=False)
     
     # Create a simple entry point script
-    entry_script = Path("rag_main.py")
+    entry_script = Path("vector_bot_main.py")
     entry_script.write_text("""
 import sys
 from pathlib import Path
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     cmd = [
         "pyinstaller",
         "--onefile",
-        "--name", "rag",
+        "--name", "vector-bot",
         "--add-data", "src/rag;rag",
         "--add-data", "configs;configs",
         "--add-data", ".env.example;.",
@@ -56,13 +56,13 @@ if __name__ == "__main__":
     result = subprocess.run(cmd, capture_output=True, text=True)
     
     if result.returncode == 0:
-        executable_path = Path("dist") / ("rag.exe" if sys.platform == "win32" else "rag")
+        executable_path = Path("dist") / ("vector-bot.exe" if sys.platform == "win32" else "vector-bot")
         print(f"OK Executable built successfully: {executable_path}")
         print(f"Size: {executable_path.stat().st_size / (1024*1024):.1f} MB")
         print("\nTo distribute:")
         print(f"1. Copy {executable_path} to target system")
         print("2. Ensure Ollama is installed and running on target system")
-        print("3. Run: ./rag doctor")
+        print("3. Run: ./vector-bot doctor")
         
         # Clean up entry script
         entry_script.unlink(missing_ok=True)

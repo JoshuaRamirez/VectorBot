@@ -1,4 +1,4 @@
-# Architecture Guide - Local Ollama RAG
+# Architecture Guide - Vector Bot
 
 ## Table of Contents
 
@@ -15,7 +15,7 @@
 
 ## Overview
 
-Local Ollama RAG is a **Retrieval-Augmented Generation** system that combines:
+Vector Bot is a **Retrieval-Augmented Generation** system that combines:
 
 - **Document Processing**: Converting files into searchable chunks
 - **Vector Embeddings**: Semantic representation of text
@@ -123,7 +123,7 @@ graph TB
 
 ```
 project/
-├── rag.exe                    # Standalone executable
+├── vector-bot.exe                    # Standalone executable
 ├── configs/                   # Environment configurations
 │   ├── development.env        # Dev settings
 │   ├── production.env         # Prod settings
@@ -224,7 +224,7 @@ def load_config(env_name=None):
 ### **Command Structure**
 
 ```
-rag [global_options] <command> [command_options]
+vector-bot [global_options] <command> [command_options]
 
 Global Options:
 ├── --env ENV          # Environment selection
@@ -293,7 +293,7 @@ EMBED_BATCH_SIZE=5                 # Smaller batches
 ### **PyInstaller Bundle Structure**
 
 ```
-rag.exe
+vector-bot.exe
 ├── Python Runtime               # Embedded Python 3.10+
 ├── Dependencies                 # All pip packages
 │   ├── llama-index-core
@@ -330,7 +330,7 @@ def get_executable_dir():
         return Path(__file__).parent.parent.parent
 
 # This allows configs to be found whether running as:
-# 1. rag.exe --config-info
+# 1. vector-bot.exe --config-info
 # 2. python -m rag.cli --config-info
 ```
 
@@ -424,7 +424,7 @@ OLLAMA_BASE_URL = "http://localhost:11434"  # Only localhost
 ### **External Dependencies**
 
 ```
-Local Ollama RAG
+Vector Bot
 ├── Ollama Server (required)
 │   ├── HTTP API on localhost:11434
 │   ├── Model management

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Smoke test script to verify the RAG stack works without disk access."""
+"""Smoke test script to verify Vector Bot works without disk access."""
 
 import argparse
 import os
@@ -10,20 +10,19 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from llama_index.core import Document, Settings, VectorStoreIndex
-from llama_index.embeddings.ollama import OllamaEmbedding  # type: ignore[reportMissingTypeStubs]
-from llama_index.llms.ollama import Ollama  # type: ignore[reportMissingTypeStubs]
+from llama_index.embeddings.ollama import OllamaEmbedding
+from llama_index.llms.ollama import Ollama
 from rich.console import Console
 
-from typing import Any
 from rag.config import load_config
 from rag.ollama_check import check_server, choose_chat_model, ensure_embed_model, list_local_models
 
 console = Console()
 
 
-def run_smoke_test(env_name: str | None = None) -> int:
+def run_smoke_test(env_name=None):
     """Run a simple smoke test with in-memory documents."""
-    console.print("[bold]RAG Smoke Test[/bold]\n")
+    console.print("[bold]Vector Bot Smoke Test[/bold]\n")
     
     # Load config
     if env_name:
@@ -109,7 +108,7 @@ def run_smoke_test(env_name: str | None = None) -> int:
     index = VectorStoreIndex.from_documents(docs)
     
     # Create query engine
-    query_engine: Any = index.as_query_engine(similarity_top_k=2)
+    query_engine = index.as_query_engine(similarity_top_k=2)
     
     # Test query
     test_question = "What are the approval steps?"
@@ -132,7 +131,7 @@ def run_smoke_test(env_name: str | None = None) -> int:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="RAG Smoke Test")
+    parser = argparse.ArgumentParser(description="Vector Bot Smoke Test")
     parser.add_argument(
         "--env",
         help="Environment configuration to use (development, production, docker)",

@@ -1,1 +1,1 @@
-"""Integration tests for the RAG application."""
+"""Integration tests for Vector Bot."""

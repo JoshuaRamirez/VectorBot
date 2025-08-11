@@ -1,4 +1,4 @@
-"""Configuration management for the RAG application."""
+"""Configuration management for Vector Bot."""
 
 import os
 import sys

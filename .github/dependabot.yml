@@ -9,9 +9,9 @@ updates:
       time: "06:00"
     open-pull-requests-limit: 5
     reviewers:
-      - "yourusername"  # Replace with actual maintainer GitHub username
+      - "joshuaramirez"  # Replace with actual maintainer GitHub username
     assignees:
-      - "yourusername"  # Replace with actual maintainer GitHub username
+      - "joshuaramirez"  # Replace with actual maintainer GitHub username
     commit-message:
       prefix: "deps"
       prefix-development: "deps-dev"
@@ -40,9 +40,9 @@ updates:
       time: "06:00"
     open-pull-requests-limit: 3
     reviewers:
-      - "yourusername"  # Replace with actual maintainer GitHub username
+      - "joshuaramirez"  # Replace with actual maintainer GitHub username
     assignees:
-      - "yourusername"  # Replace with actual maintainer GitHub username
+      - "joshuaramirez"  # Replace with actual maintainer GitHub username
     commit-message:
       prefix: "ci"
     labels:

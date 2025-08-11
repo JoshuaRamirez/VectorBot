@@ -39,11 +39,11 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            asset_name: rag-linux
+            asset_name: vector-bot-linux
           - os: windows-latest
-            asset_name: rag-windows.exe
+            asset_name: vector-bot-windows.exe
           - os: macOS-latest
-            asset_name: rag-macos
+            asset_name: vector-bot-macos
 
     steps:
     - uses: actions/checkout@v4
@@ -65,12 +65,12 @@ jobs:
     - name: Rename executable (Unix)
       if: runner.os != 'Windows'
       run: |
-        mv dist/rag dist/${{ matrix.asset_name }}
+        mv dist/vector-bot dist/${{ matrix.asset_name }}
 
     - name: Rename executable (Windows)
       if: runner.os == 'Windows'
       run: |
-        move dist\rag.exe dist\${{ matrix.asset_name }}
+        move dist\vector-bot.exe dist\${{ matrix.asset_name }}
 
     - name: Upload executable to release
       uses: actions/upload-artifact@v4
@@ -101,19 +101,19 @@ jobs:
         tag_name: ${{ github.ref }}
         release_name: Release v${{ steps.version.outputs.VERSION }}
         body: |
-          ## Local Ollama RAG v${{ steps.version.outputs.VERSION }}
+          ## Vector Bot v${{ steps.version.outputs.VERSION }}
 
           ### Installation
 
           **Python Package:**
           ```bash
-          pip install local-ollama-rag==${{ steps.version.outputs.VERSION }}
+          pip install vector-bot==${{ steps.version.outputs.VERSION }}
           ```
 
           **Pre-built Executables:**
-          - Linux: Download `rag-linux`
-          - Windows: Download `rag-windows.exe`
-          - macOS: Download `rag-macos`
+          - Linux: Download `vector-bot-linux`
+          - Windows: Download `vector-bot-windows.exe`
+          - macOS: Download `vector-bot-macos`
 
           ### Changes
           See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
@@ -130,8 +130,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/rag-linux/rag-linux
-        asset_name: rag-linux
+        asset_path: ./artifacts/vector-bot-linux/vector-bot-linux
+        asset_name: vector-bot-linux
         asset_content_type: application/octet-stream
 
     - name: Upload Windows Asset
@@ -140,8 +140,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/rag-windows.exe/rag-windows.exe
-        asset_name: rag-windows.exe
+        asset_path: ./artifacts/vector-bot-windows.exe/vector-bot-windows.exe
+        asset_name: vector-bot-windows.exe
         asset_content_type: application/octet-stream
 
     - name: Upload macOS Asset
@@ -150,6 +150,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/rag-macos/rag-macos
-        asset_name: rag-macos
+        asset_path: ./artifacts/vector-bot-macos/vector-bot-macos
+        asset_name: vector-bot-macos
         asset_content_type: application/octet-stream

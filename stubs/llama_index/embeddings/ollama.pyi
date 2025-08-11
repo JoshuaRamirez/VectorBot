@@ -1,0 +1,16 @@
+# Type stubs for llama_index.embeddings.ollama
+from typing import Any, List, Optional
+
+class OllamaEmbedding:
+    def __init__(
+        self,
+        model_name: str = "nomic-embed-text",
+        base_url: str = "http://localhost:11434",
+        embed_batch_size: int = 10,
+        **kwargs: Any
+    ) -> None: ...
+    
+    def get_text_embedding(self, text: str) -> List[float]: ...
+    def get_text_embedding_batch(self, texts: List[str]) -> List[List[float]]: ...
+    async def aget_text_embedding(self, text: str) -> List[float]: ...
+    async def aget_text_embedding_batch(self, texts: List[str]) -> List[List[float]]: ...

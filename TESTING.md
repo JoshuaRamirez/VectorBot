@@ -1,6 +1,6 @@
 # Comprehensive Unit Testing Suite
 
-This document provides an overview of the comprehensive unit testing suite created for the Local Ollama RAG project.
+This document provides an overview of the comprehensive unit testing suite created for the Vector Bot project.
 
 ## What Has Been Delivered
 
@@ -175,7 +175,7 @@ pytest tests/unit/test_config.py
 pytest tests/unit/ -v
 
 # Run with coverage reporting
-pytest tests/unit/ --cov=rag --cov-report=html
+pytest tests/unit/ --cov=src/rag --cov-report=html
 ```
 
 ### Test Categories
@@ -233,4 +233,4 @@ pytest -k "test_LoadConfig"
    - Platform independence
    - Performance optimization
 
-This unit testing suite represents industry best practices and provides a solid foundation for maintaining code quality, preventing regressions, and enabling confident refactoring of the Local Ollama RAG codebase.
+This unit testing suite represents industry best practices and provides a solid foundation for maintaining code quality, preventing regressions, and enabling confident refactoring of the Vector Bot codebase.

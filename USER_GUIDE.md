@@ -1,4 +1,4 @@
-# User Guide - Local Ollama RAG
+# User Guide - Vector Bot
 
 ## Table of Contents
 
@@ -14,7 +14,7 @@
 
 ## Introduction
 
-Local Ollama RAG is a powerful tool that lets you ask questions about your documents using AI, all while keeping everything on your computer. No internet connection required, no data sent to the cloud - everything runs locally.
+Vector Bot is a powerful tool that lets you ask questions about your documents using AI, all while keeping everything on your computer. No internet connection required, no data sent to the cloud - everything runs locally.
 
 ### What Can You Do With It?
 
@@ -27,13 +27,13 @@ Local Ollama RAG is a powerful tool that lets you ask questions about your docum
 
 ### Method 1: Using the Standalone Executable (Easiest)
 
-If you received `rag.exe` (Windows) or `rag` (Mac/Linux):
+If you received `vector-bot.exe` (Windows) or `vector-bot` (Mac/Linux):
 
 1. **Place the executable** in a convenient location (e.g., `C:\Tools\` or `/usr/local/bin/`)
 2. **Add to PATH** (optional) for easier access
 3. **Test it works**:
    ```bash
-   rag --version
+   vector-bot --version
    ```
 
 ### Method 2: From Source Code
@@ -67,7 +67,7 @@ If you received `rag.exe` (Windows) or `rag` (Mac/Linux):
 
 ```bash
 # Check if everything is working
-rag doctor
+vector-bot doctor
 
 # Expected output:
 # ✓ Ollama server is running
@@ -127,7 +127,7 @@ Supported formats:
 Build the searchable index:
 
 ```bash
-rag ingest
+vector-bot ingest
 
 # Output:
 # Loading 15 documents...
@@ -144,13 +144,13 @@ Query your documents:
 
 ```bash
 # Simple question
-rag query "What are the project requirements?"
+vector-bot query "What are the project requirements?"
 
 # Question with more context chunks
-rag query "Explain the authentication flow" --k 6
+vector-bot query "Explain the authentication flow" --k 6
 
 # Show which documents were used
-rag query "What is the deployment process?" --show-sources
+vector-bot query "What is the deployment process?" --show-sources
 ```
 
 ## Working with Documents
@@ -185,7 +185,7 @@ When you add new documents:
 cp new-document.pdf docs/
 
 # Re-run ingestion (safe - won't duplicate)
-rag ingest
+vector-bot ingest
 ```
 
 To completely rebuild the index:
@@ -196,7 +196,7 @@ rm -rf index_storage/  # Unix
 rmdir /s index_storage  # Windows
 
 # Rebuild
-rag ingest
+vector-bot ingest
 ```
 
 ## Advanced Features
@@ -207,13 +207,13 @@ Use different settings for different scenarios:
 
 ```bash
 # Development mode (verbose output)
-rag --env development doctor
+vector-bot --env development doctor
 
 # Production mode (optimized)
-rag --env production ingest
+vector-bot --env production ingest
 
 # Check current configuration
-rag --config-info --env production
+vector-bot --config-info --env production
 ```
 
 ### Custom Model Selection
@@ -223,7 +223,7 @@ Override the default model:
 ```bash
 # Set via environment variable
 export OLLAMA_CHAT_MODEL=llama3.3
-rag query "What is the summary?"
+vector-bot query "What is the summary?"
 
 # Or in .env file
 OLLAMA_CHAT_MODEL=mistral
@@ -242,7 +242,7 @@ echo "Explain the architecture" >> questions.txt
 # Process all questions
 while IFS= read -r question; do
     echo "Q: $question"
-    rag query "$question"
+    vector-bot query "$question"
     echo "---"
 done < questions.txt
 ```
@@ -300,7 +300,7 @@ export OLLAMA_CHAT_MODEL=llama3.1
 ls docs/
 
 # Verify path in config
-rag --config-info
+vector-bot --config-info
 
 # Use absolute path if needed
 export DOCS_DIR=/full/path/to/documents
@@ -310,7 +310,7 @@ export DOCS_DIR=/full/path/to/documents
 
 ```bash
 # Build the index first
-rag ingest
+vector-bot ingest
 
 # Check index location
 ls index_storage/
@@ -318,7 +318,7 @@ ls index_storage/
 
 #### Slow Performance
 
-- Reduce similarity chunks: `rag query "question" --k 2`
+- Reduce similarity chunks: `vector-bot query "question" --k 2`
 - Use a faster model: `OLLAMA_CHAT_MODEL=llama3.1`
 - Check available RAM and close other applications
 
@@ -329,7 +329,7 @@ If Ollama is on a different port:
 ```bash
 # Set custom URL
 export OLLAMA_BASE_URL=http://localhost:8080
-rag doctor
+vector-bot doctor
 ```
 
 ## Command Reference
@@ -337,7 +337,7 @@ rag doctor
 ### Global Options
 
 ```bash
-rag [--env ENV] [--config-info] COMMAND
+vector-bot [--env ENV] [--config-info] COMMAND
 ```
 
 - `--env ENV`: Use specific environment (development, production, docker)
@@ -350,7 +350,7 @@ rag [--env ENV] [--config-info] COMMAND
 #### `doctor` - System Health Check
 
 ```bash
-rag doctor [--verbose]
+vector-bot doctor [--verbose]
 ```
 
 Checks:
@@ -361,7 +361,7 @@ Checks:
 #### `ingest` - Index Documents
 
 ```bash
-rag ingest [--verbose]
+vector-bot ingest [--verbose]
 ```
 
 Options:
@@ -370,7 +370,7 @@ Options:
 #### `query` - Ask Questions
 
 ```bash
-rag query "your question" [OPTIONS]
+vector-bot query "your question" [OPTIONS]
 ```
 
 Options:
@@ -430,11 +430,11 @@ Options:
 ```bash
 # Index research papers
 cp ~/Research/Papers/*.pdf docs/
-rag ingest
+vector-bot ingest
 
 # Find relevant studies
-rag query "What studies discuss quantum computing applications?"
-rag query "Summarize findings about machine learning in healthcare" --k 8
+vector-bot query "What studies discuss quantum computing applications?"
+vector-bot query "Summarize findings about machine learning in healthcare" --k 8
 ```
 
 ### Software Documentation
@@ -442,12 +442,12 @@ rag query "Summarize findings about machine learning in healthcare" --k 8
 ```bash
 # Index API docs and guides
 cp -r ~/project/docs/* docs/
-rag ingest
+vector-bot ingest
 
 # Quick lookups
-rag query "How do I authenticate API requests?"
-rag query "What are the rate limits?"
-rag query "Show example of webhook implementation" --show-sources
+vector-bot query "How do I authenticate API requests?"
+vector-bot query "What are the rate limits?"
+vector-bot query "Show example of webhook implementation" --show-sources
 ```
 
 ### Personal Knowledge Base
@@ -455,11 +455,11 @@ rag query "Show example of webhook implementation" --show-sources
 ```bash
 # Index notes and articles
 cp ~/Notes/*.md docs/
-rag ingest
+vector-bot ingest
 
 # Search your notes
-rag query "What did I learn about Docker networking?"
-rag query "Find my notes about Python decorators"
+vector-bot query "What did I learn about Docker networking?"
+vector-bot query "Find my notes about Python decorators"
 ```
 
 ### Technical Support
@@ -467,11 +467,11 @@ rag query "Find my notes about Python decorators"
 ```bash
 # Index manuals and guides
 cp ~/Manuals/*.pdf docs/
-rag ingest
+vector-bot ingest
 
 # Troubleshooting
-rag query "How to reset the printer?"
-rag query "What does error code E45 mean?"
+vector-bot query "How to reset the printer?"
+vector-bot query "What does error code E45 mean?"
 ```
 
 ## Getting Help
@@ -486,17 +486,17 @@ rag query "What does error code E45 mean?"
 
 ```bash
 # Check system status
-rag doctor --verbose
+vector-bot doctor --verbose
 
 # Show configuration
-rag --config-info
+vector-bot --config-info
 
 # Command help
-rag --help
-rag query --help
+vector-bot --help
+vector-bot query --help
 
 # Version information
-rag --version
+vector-bot --version
 ```
 
 ### Error Messages
@@ -506,7 +506,7 @@ rag --version
 | "Ollama server not running" | Can't connect to Ollama | Start with `ollama serve` |
 | "No models installed" | No AI models available | Run `ollama pull llama3.1` |
 | "No documents found" | Empty docs directory | Add files to `docs/` folder |
-| "Index not found" | Haven't built index | Run `rag ingest` first |
+| "Index not found" | Haven't built index | Run `vector-bot ingest` first |
 
 ## Development and Testing
 
@@ -525,7 +525,7 @@ pytest tests/ -v
 pytest tests/unit/ -v
 
 # Run with coverage report
-pytest tests/ --cov=rag --cov-report=html
+pytest tests/ --cov=vector-bot --cov-report=html
 
 # Use the test runner script
 python run_tests.py
@@ -557,17 +557,17 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines.
 # Initial setup
 ollama pull llama3.1           # Install AI model
 ollama pull nomic-embed-text   # Install embedding model
-rag doctor                      # Verify setup
+vector-bot doctor                      # Verify setup
 
 # Daily workflow
 cp document.pdf docs/           # Add document
-rag ingest                      # Build/update index
-rag query "question?"           # Ask question
+vector-bot ingest                      # Build/update index
+vector-bot query "question?"           # Ask question
 
 # Useful options
-rag query "question?" --k 6 --show-sources
-rag --env production ingest
-rag --config-info
+vector-bot query "question?" --k 6 --show-sources
+vector-bot --env production ingest
+vector-bot --config-info
 
 # Troubleshooting
 ollama serve                    # Start Ollama
@@ -577,4 +577,4 @@ ls docs/                        # Check documents
 
 ---
 
-*This guide covers Local Ollama RAG version 1.0.0*
+*This guide covers Vector Bot version 1.0.0*

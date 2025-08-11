@@ -10,7 +10,7 @@ We provide security updates for the following versions:
 
 ## Reporting a Vulnerability
 
-The Local Ollama RAG team takes security seriously. If you discover a security vulnerability, please report it responsibly.
+The Vector Bot team takes security seriously. If you discover a security vulnerability, please report it responsibly.
 
 ### How to Report
 
@@ -101,7 +101,7 @@ For security-related questions or reports:
 
 ## Acknowledgments
 
-We thank the security research community for responsible disclosure and helping keep Local Ollama RAG secure.
+We thank the security research community for responsible disclosure and helping keep Vector Bot secure.
 
 ---
 

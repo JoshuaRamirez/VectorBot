@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide covers deploying the Local Ollama RAG application in different environments.
+This guide covers deploying the Vector Bot application in different environments.
 
 ## Multi-Environment Support
 
@@ -57,7 +57,7 @@ To enable the CI/CD pipeline in your GitHub repository:
    git init
    git add .
    git commit -m "Initial commit with CI/CD setup"
-   git remote add origin https://github.com/yourusername/local-ollama-rag-poc.git
+   git remote add origin https://github.com/joshuaramirez/vector-bot.git
    git push -u origin main
    ```
 
@@ -100,19 +100,19 @@ Build a single executable with all dependencies:
 make build-exe
 
 # Deploy executable with configs
-cp dist/rag /usr/local/bin/
-cp -r configs /usr/local/share/rag/
+cp dist/vector-bot /usr/local/bin/
+cp -r configs /usr/local/share/vector-bot/
 ```
 
 **Usage:**
 ```bash
 # Use specific environment
-rag --env production doctor
-rag --env production ingest
-rag --env production query "What are the requirements?"
+vector-bot --env production doctor
+vector-bot --env production ingest
+vector-bot --env production query "What are the requirements?"
 
 # Check configuration
-rag --config-info --env production
+vector-bot --config-info --env production
 ```
 
 ### 2. Python Package Installation
@@ -120,7 +120,7 @@ rag --config-info --env production
 #### From PyPI (Recommended)
 ```bash
 # Install from PyPI
-pip install local-ollama-rag
+pip install local-ollama-vector-bot
 
 # Set environment
 export RAG_ENV=production
@@ -128,9 +128,9 @@ export DOCS_DIR=/data/documents
 export INDEX_DIR=/data/index_storage
 
 # Run commands
-rag doctor
-rag ingest
-rag query "your question"
+vector-bot doctor
+vector-bot ingest
+vector-bot query "your question"
 ```
 
 #### From Source
@@ -144,7 +144,7 @@ export DOCS_DIR=/data/documents
 export INDEX_DIR=/data/index_storage
 
 # Run commands
-python -m rag.cli doctor
+python -m vector-bot.cli doctor
 ```
 
 ### 3. Docker Deployment
@@ -163,18 +163,18 @@ RUN mkdir -p /app/docs /app/index_storage
 # Set environment
 ENV RAG_ENV=docker
 
-ENTRYPOINT ["python", "-m", "rag.cli"]
+ENTRYPOINT ["python", "-m", "vector-bot.cli"]
 CMD ["--help"]
 ```
 
 **Build and run:**
 ```bash
-docker build -t rag-local .
+docker build -t vector-bot-local .
 
 # Run with volume mounts
 docker run -v /host/docs:/app/docs \
            -v /host/index:/app/index_storage \
-           rag-local --env docker doctor
+           vector-bot-local --env docker doctor
 ```
 
 ### 4. System Service (Linux)
@@ -182,20 +182,20 @@ docker run -v /host/docs:/app/docs \
 Create a systemd service for production deployment:
 
 ```ini
-# /etc/systemd/system/rag-indexer.service
+# /etc/systemd/system/vector-bot-indexer.service
 [Unit]
 Description=RAG Document Indexer
 After=network.target
 
 [Service]
 Type=oneshot
-User=rag
-Group=rag
+User=vector-bot
+Group=vector-bot
 Environment=RAG_ENV=production
 Environment=DOCS_DIR=/data/documents
 Environment=INDEX_DIR=/data/index_storage
-ExecStart=/usr/local/bin/rag ingest
-WorkingDirectory=/opt/rag
+ExecStart=/usr/local/bin/vector-bot ingest
+WorkingDirectory=/opt/vector-bot
 
 [Install]
 WantedBy=multi-user.target
@@ -203,8 +203,8 @@ WantedBy=multi-user.target
 
 Enable and start:
 ```bash
-sudo systemctl enable rag-indexer.service
-sudo systemctl start rag-indexer.service
+sudo systemctl enable vector-bot-indexer.service
+sudo systemctl start vector-bot-indexer.service
 ```
 
 ## Configuration Management
@@ -240,10 +240,10 @@ The application intelligently resolves paths:
 
 ```bash
 # Show current configuration
-rag --config-info --env production
+vector-bot --config-info --env production
 
 # Show verbose config loading
-RAG_VERBOSE=true rag doctor --env production
+RAG_VERBOSE=true vector-bot doctor --env production
 ```
 
 ## Production Deployment Checklist
@@ -260,13 +260,13 @@ RAG_VERBOSE=true rag doctor --env production
 - [ ] Copy executable to target location
 - [ ] Copy configuration files
 - [ ] Set appropriate environment variables
-- [ ] Test with `rag --config-info --env production`
-- [ ] Run health check: `rag --env production doctor`
+- [ ] Test with `vector-bot --config-info --env production`
+- [ ] Run health check: `vector-bot --env production doctor`
 
 ### Post-deployment
 
-- [ ] Initial document ingestion: `rag --env production ingest`
-- [ ] Test querying: `rag --env production query "test question"`
+- [ ] Initial document ingestion: `vector-bot --env production ingest`
+- [ ] Test querying: `vector-bot --env production query "test question"`
 - [ ] Set up monitoring/logging as needed
 - [ ] Configure automated document updates
 
@@ -306,24 +306,24 @@ RAG_VERBOSE=true rag doctor --env production
 ### Configuration Issues
 ```bash
 # Debug configuration loading
-RAG_VERBOSE=true rag --config-info --env production
+RAG_VERBOSE=true vector-bot --config-info --env production
 ```
 
 ### Path Resolution Problems
 ```bash
 # Check executable location detection
-python -c "from rag.config import get_executable_dir; print(get_executable_dir())"
+python -c "from vector-bot.config import get_executable_dir; print(get_executable_dir())"
 ```
 
 ### Environment Loading
 ```bash
 # Test specific environment
-rag --env production --config-info
+vector-bot --env production --config-info
 ```
 
 ### Ollama Connectivity
 ```bash
 # Test Ollama connection
 curl http://localhost:11434/api/tags
-rag --env production doctor
+vector-bot --env production doctor
 ```

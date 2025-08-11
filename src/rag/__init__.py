@@ -1,4 +1,4 @@
-"""Local Ollama RAG - Fully offline RAG pipeline using LlamaIndex with Ollama."""
+"""Vector Bot - Fully offline RAG pipeline using LlamaIndex with Ollama."""
 
 from .version import __version__
 

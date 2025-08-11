@@ -1,8 +1,8 @@
-"""Command-line interface for the RAG application."""
+"""Command-line interface for Vector Bot."""
 
 import argparse
 import sys
-from typing import Optional
+from typing import Any, List, Optional
 
 from rich.console import Console
 
@@ -14,11 +14,11 @@ from .version import __version__
 console = Console()
 
 
-def main(argv: Optional[list] = None) -> int:
+def main(argv: Optional[List[str]] = None) -> int:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        prog="rag",
-        description="Local RAG pipeline using LlamaIndex with Ollama",
+        prog="vector-bot",
+        description="Vector Bot: Local RAG pipeline using LlamaIndex with Ollama",
     )
     parser.add_argument(
         "--version",

@@ -55,7 +55,7 @@ jobs:
     - name: Test package installation
       run: |
         pip install dist/*.whl
-        rag --help
+        vector-bot --help
 
   security:
     runs-on: ubuntu-latest
@@ -107,17 +107,17 @@ jobs:
     - name: Test executable (Unix)
       if: runner.os != 'Windows'
       run: |
-        ./dist/rag --help
+        ./dist/vector-bot --help
 
     - name: Test executable (Windows)
       if: runner.os == 'Windows'
       run: |
-        ./dist/rag.exe --help
+        ./dist/vector-bot.exe --help
 
     - name: Upload executable artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: rag-${{ runner.os }}
+        name: vector-bot-${{ runner.os }}
         path: |
-          dist/rag*
+          dist/vector-bot*
         retention-days: 30

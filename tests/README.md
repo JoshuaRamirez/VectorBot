@@ -1,6 +1,6 @@
 # Test Suite Documentation
 
-This directory contains comprehensive unit and integration tests for the Local Ollama RAG project.
+This directory contains comprehensive unit and integration tests for the Vector Bot project.
 
 ## Test Structure
 
@@ -73,7 +73,7 @@ pytest -v
 
 ### Run with Coverage Report
 ```bash
-pytest --cov=rag --cov-report=html
+pytest --cov=src/rag --cov-report=html
 ```
 
 ## Test Naming Convention

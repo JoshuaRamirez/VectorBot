@@ -1,1 +1,1 @@
-"""Unit tests for the RAG application modules."""
+"""Unit tests for Vector Bot modules."""

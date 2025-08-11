@@ -2,13 +2,14 @@
 
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
+from typing import Any
 import pytest
 
 
 class TestSetupLlmSettings:
     """Test cases for setup_llm_settings function."""
 
-    def test_SetupLlmSettings_WithValidConfig_ConfiguresSettings(self, mock_console):
+    def test_SetupLlmSettings_WithValidConfig_ConfiguresSettings(self, mock_console: Any) -> None:
         """Test LLM settings configuration with valid config."""
         # Arrange
         config = {
@@ -38,7 +39,7 @@ class TestSetupLlmSettings:
                                     mock_ollama.assert_called_once()
                                     mock_embedding.assert_called_once()
 
-    def test_SetupLlmSettings_WithServerDown_RaisesRuntimeError(self, mock_console):
+    def test_SetupLlmSettings_WithServerDown_RaisesRuntimeError(self, mock_console: Any) -> None:
         """Test that RuntimeError is raised when server is down."""
         # Arrange
         config = {"OLLAMA_BASE_URL": "http://localhost:11434"}
@@ -50,7 +51,7 @@ class TestSetupLlmSettings:
             with pytest.raises(RuntimeError, match="Ollama server not running"):
                 setup_llm_settings(config)
 
-    def test_SetupLlmSettings_WithNoModels_RaisesRuntimeError(self, mock_console):
+    def test_SetupLlmSettings_WithNoModels_RaisesRuntimeError(self, mock_console: Any) -> None:
         """Test that RuntimeError is raised when no models are available."""
         # Arrange
         config = {"OLLAMA_BASE_URL": "http://localhost:11434"}
@@ -63,7 +64,7 @@ class TestSetupLlmSettings:
                 with pytest.raises(RuntimeError, match="No models installed"):
                     setup_llm_settings(config)
 
-    def test_SetupLlmSettings_WithNoChatModel_RaisesRuntimeError(self, mock_console):
+    def test_SetupLlmSettings_WithNoChatModel_RaisesRuntimeError(self, mock_console: Any) -> None:
         """Test that RuntimeError is raised when no suitable chat model found."""
         # Arrange
         config = {
@@ -81,7 +82,7 @@ class TestSetupLlmSettings:
                     with pytest.raises(RuntimeError, match="No suitable chat model found"):
                         setup_llm_settings(config)
 
-    def test_SetupLlmSettings_WithMissingEmbedModel_RaisesRuntimeError(self, mock_console):
+    def test_SetupLlmSettings_WithMissingEmbedModel_RaisesRuntimeError(self, mock_console: Any) -> None:
         """Test that RuntimeError is raised when embed model is missing."""
         # Arrange
         config = {
@@ -103,7 +104,7 @@ class TestSetupLlmSettings:
                         with pytest.raises(RuntimeError, match="Model not found"):
                             setup_llm_settings(config)
 
-    def test_SetupLlmSettings_ConfiguresOllamaLlm_WithCorrectParameters(self, mock_console):
+    def test_SetupLlmSettings_ConfiguresOllamaLlm_WithCorrectParameters(self, mock_console: Any) -> None:
         """Test that Ollama LLM is configured with correct parameters."""
         # Arrange
         config = {
@@ -137,7 +138,7 @@ class TestSetupLlmSettings:
                                         request_timeout=120.0
                                     )
 
-    def test_SetupLlmSettings_ConfiguresOllamaEmbedding_WithCorrectParameters(self, mock_console):
+    def test_SetupLlmSettings_ConfiguresOllamaEmbedding_WithCorrectParameters(self, mock_console: Any) -> None:
         """Test that Ollama embedding is configured with correct parameters."""
         # Arrange
         config = {
@@ -174,7 +175,7 @@ class TestSetupLlmSettings:
 class TestLoadDocuments:
     """Test cases for load_documents function."""
 
-    def test_LoadDocuments_WithNonexistentDir_CreatesDirectoryAndReturnsEmpty(self, mock_console):
+    def test_LoadDocuments_WithNonexistentDir_CreatesDirectoryAndReturnsEmpty(self, mock_console: Any) -> None:
         """Test that nonexistent directory is created and empty list returned."""
         # Arrange
         docs_dir = Path("/test/docs")
@@ -190,7 +191,7 @@ class TestLoadDocuments:
                 mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
                 assert result == []
 
-    def test_LoadDocuments_WithNoFiles_ReturnsEmptyList(self, mock_console):
+    def test_LoadDocuments_WithNoFiles_ReturnsEmptyList(self, mock_console: Any) -> None:
         """Test that empty directory returns empty list."""
         # Arrange
         docs_dir = Path("/test/docs")
@@ -205,7 +206,7 @@ class TestLoadDocuments:
                 # Assert
                 assert result == []
 
-    def test_LoadDocuments_WithValidFiles_LoadsDocuments(self, mock_console):
+    def test_LoadDocuments_WithValidFiles_LoadsDocuments(self, mock_console: Any) -> None:
         """Test that valid files are loaded correctly."""
         # Arrange
         docs_dir = Path("/test/docs")
@@ -242,7 +243,7 @@ class TestLoadDocuments:
                     assert result == mock_documents
                     mock_reader.assert_called_once()
 
-    def test_LoadDocuments_WithLargeFiles_SkipsLargeFiles(self, mock_console):
+    def test_LoadDocuments_WithLargeFiles_SkipsLargeFiles(self, mock_console: Any) -> None:
         """Test that files larger than 20MB are skipped."""
         # Arrange
         docs_dir = Path("/test/docs")
@@ -282,7 +283,7 @@ class TestLoadDocuments:
                     # Should print warning about large file
                     mock_console.print.assert_called()
 
-    def test_LoadDocuments_WithOnlyLargeFiles_ReturnsEmptyList(self, mock_console):
+    def test_LoadDocuments_WithOnlyLargeFiles_ReturnsEmptyList(self, mock_console: Any) -> None:
         """Test that only large files results in empty list."""
         # Arrange
         docs_dir = Path("/test/docs")
@@ -312,7 +313,7 @@ class TestLoadDocuments:
                 # Assert
                 assert result == []
 
-    def test_LoadDocuments_ConfiguresSimpleDirectoryReader_WithCorrectParameters(self, mock_console):
+    def test_LoadDocuments_ConfiguresSimpleDirectoryReader_WithCorrectParameters(self, mock_console: Any) -> None:
         """Test that SimpleDirectoryReader is configured with correct parameters."""
         # Arrange
         docs_dir = Path("/test/docs")
@@ -354,7 +355,7 @@ class TestLoadDocuments:
 class TestIngest:
     """Test cases for ingest function."""
 
-    def test_Ingest_WithExistingIndex_LoadsExistingIndex(self, mock_console):
+    def test_Ingest_WithExistingIndex_LoadsExistingIndex(self, mock_console: Any) -> None:
         """Test that existing index is loaded when available."""
         # Arrange
         mock_config = {
@@ -378,7 +379,7 @@ class TestIngest:
                             mock_storage.from_defaults.assert_called_once()
                             mock_load.assert_called_once()
 
-    def test_Ingest_WithCorruptedExistingIndex_CreatesNewIndex(self, mock_console):
+    def test_Ingest_WithCorruptedExistingIndex_CreatesNewIndex(self, mock_console: Any) -> None:
         """Test that corrupted existing index triggers new index creation."""
         # Arrange
         mock_config = {
@@ -407,7 +408,7 @@ class TestIngest:
                                         # Assert
                                         mock_index_class.from_documents.assert_called_once()
 
-    def test_Ingest_WithNoExistingIndex_CreatesNewIndex(self, mock_console):
+    def test_Ingest_WithNoExistingIndex_CreatesNewIndex(self, mock_console: Any) -> None:
         """Test that new index is created when none exists."""
         # Arrange
         mock_config = {
@@ -438,7 +439,7 @@ class TestIngest:
                                     show_progress=False
                                 )
 
-    def test_Ingest_WithNoDocuments_RaisesRuntimeError(self, mock_console):
+    def test_Ingest_WithNoDocuments_RaisesRuntimeError(self, mock_console: Any) -> None:
         """Test that RuntimeError is raised when no documents found."""
         # Arrange
         mock_config = {
@@ -456,7 +457,7 @@ class TestIngest:
                         with pytest.raises(RuntimeError, match="No documents found"):
                             ingest()
 
-    def test_Ingest_WithVerboseFlag_PassesToVectorStoreIndex(self, mock_console):
+    def test_Ingest_WithVerboseFlag_PassesToVectorStoreIndex(self, mock_console: Any) -> None:
         """Test that verbose flag is passed to VectorStoreIndex."""
         # Arrange
         mock_config = {
@@ -484,7 +485,7 @@ class TestIngest:
                                 _, kwargs = mock_index_class.from_documents.call_args
                                 assert kwargs['show_progress'] is True
 
-    def test_Ingest_WithSpecificEnvName_PassesToLoadConfig(self, mock_console):
+    def test_Ingest_WithSpecificEnvName_PassesToLoadConfig(self, mock_console: Any) -> None:
         """Test that specific env name is passed to load_config."""
         # Arrange
         mock_config = {
@@ -505,7 +506,7 @@ class TestIngest:
                             # Assert
                             mock_load_config.assert_called_once_with("production")
 
-    def test_Ingest_PersistsIndex_ToCorrectDirectory(self, mock_console):
+    def test_Ingest_PersistsIndex_ToCorrectDirectory(self, mock_console: Any) -> None:
         """Test that index is persisted to correct directory."""
         # Arrange
         mock_config = {

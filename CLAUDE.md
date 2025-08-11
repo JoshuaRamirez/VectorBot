@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This project implements a fully local Retrieval-Augmented Generation (RAG) pipeline using LlamaIndex with Ollama. It provides offline question-answering capabilities by indexing local documents without any external network calls.
+Vector Bot is a fully local Retrieval-Augmented Generation (RAG) pipeline using LlamaIndex with Ollama. It provides offline question-answering capabilities by indexing local documents without any external network calls.
 
 ## Architecture
 

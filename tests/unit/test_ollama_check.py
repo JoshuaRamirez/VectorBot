@@ -2,6 +2,7 @@
 
 import json
 import subprocess
+from typing import Any
 from unittest.mock import Mock, patch
 import requests
 
@@ -9,7 +10,7 @@ import requests
 class TestCheckServer:
     """Test cases for check_server function."""
 
-    def test_CheckServer_WithSuccessfulResponse_ReturnsTrue(self):
+    def test_CheckServer_WithSuccessfulResponse_ReturnsTrue(self) -> None:
         """Test server check returns True for successful response."""
         # Arrange
         with patch('requests.get') as mock_get:
@@ -25,7 +26,7 @@ class TestCheckServer:
             assert result is True
             mock_get.assert_called_once_with("http://localhost:11434/api/tags", timeout=3)
 
-    def test_CheckServer_WithConnectionError_ReturnsFalse(self):
+    def test_CheckServer_WithConnectionError_ReturnsFalse(self) -> None:
         """Test server check returns False for connection error."""
         # Arrange
         with patch('requests.get', side_effect=requests.ConnectionError()):
@@ -37,7 +38,7 @@ class TestCheckServer:
             # Assert
             assert result is False
 
-    def test_CheckServer_WithTimeout_ReturnsFalse(self):
+    def test_CheckServer_WithTimeout_ReturnsFalse(self) -> None:
         """Test server check returns False for timeout."""
         # Arrange
         with patch('requests.get', side_effect=requests.Timeout()):
@@ -49,7 +50,7 @@ class TestCheckServer:
             # Assert
             assert result is False
 
-    def test_CheckServer_WithNon200Status_ReturnsFalse(self):
+    def test_CheckServer_WithNon200Status_ReturnsFalse(self) -> None:
         """Test server check returns False for non-200 status code."""
         # Arrange
         with patch('requests.get') as mock_get:
@@ -64,7 +65,7 @@ class TestCheckServer:
             # Assert
             assert result is False
 
-    def test_CheckServer_WithCustomBaseUrl_UsesCorrectUrl(self):
+    def test_CheckServer_WithCustomBaseUrl_UsesCorrectUrl(self) -> None:
         """Test server check uses custom base URL correctly."""
         # Arrange
         custom_url = "http://custom-host:8080"
@@ -84,7 +85,7 @@ class TestCheckServer:
 class TestListLocalModels:
     """Test cases for list_local_models function."""
 
-    def test_ListLocalModels_WithSuccessfulApiCall_ReturnsModelList(self):
+    def test_ListLocalModels_WithSuccessfulApiCall_ReturnsModelList(self) -> None:
         """Test listing models via API returns correct model list."""
         # Arrange
         models_data = {
@@ -107,7 +108,7 @@ class TestListLocalModels:
             expected = ["llama3.1:latest", "nomic-embed-text:latest"]
             assert result == expected
 
-    def test_ListLocalModels_WithApiFailure_FallsBackToCli(self):
+    def test_ListLocalModels_WithApiFailure_FallsBackToCli(self) -> None:
         """Test that API failure triggers CLI fallback."""
         # Arrange
         cli_output = "NAME\t\t\tID\t\t\tSIZE\tMODIFIED\nllama3:latest\t\tabc123\t\t7GB\t2 days ago\n"
@@ -127,7 +128,7 @@ class TestListLocalModels:
                 assert result == ["llama3"]
                 mock_run.assert_called_once()
 
-    def test_ListLocalModels_WithEmptyApiResponse_ReturnsEmptyList(self):
+    def test_ListLocalModels_WithEmptyApiResponse_ReturnsEmptyList(self) -> None:
         """Test that empty API response returns empty list."""
         # Arrange
         with patch('requests.get') as mock_get:
@@ -143,7 +144,7 @@ class TestListLocalModels:
             # Assert
             assert result == []
 
-    def test_ListLocalModels_WithJsonDecodeError_FallsBackToCli(self):
+    def test_ListLocalModels_WithJsonDecodeError_FallsBackToCli(self) -> None:
         """Test that JSON decode error triggers CLI fallback."""
         # Arrange
         cli_output = "NAME\t\t\tID\t\t\tSIZE\tMODIFIED\nmistral:latest\t\tdef456\t\t4GB\t1 day ago\n"
@@ -167,7 +168,7 @@ class TestListLocalModels:
                 # Assert
                 assert result == ["mistral"]
 
-    def test_ListLocalModels_WithCliTimeout_ReturnsEmptyList(self):
+    def test_ListLocalModels_WithCliTimeout_ReturnsEmptyList(self) -> None:
         """Test that CLI timeout returns empty list."""
         # Arrange
         with patch('requests.get', side_effect=requests.ConnectionError()):
@@ -180,7 +181,7 @@ class TestListLocalModels:
                 # Assert
                 assert result == []
 
-    def test_ListLocalModels_WithCliFileNotFound_ReturnsEmptyList(self):
+    def test_ListLocalModels_WithCliFileNotFound_ReturnsEmptyList(self) -> None:
         """Test that CLI not found returns empty list."""
         # Arrange
         with patch('requests.get', side_effect=requests.ConnectionError()):
@@ -193,7 +194,7 @@ class TestListLocalModels:
                 # Assert
                 assert result == []
 
-    def test_ListLocalModels_RemovesTagSuffixes_Correctly(self):
+    def test_ListLocalModels_RemovesTagSuffixes_Correctly(self) -> None:
         """Test that tag suffixes are removed from model names."""
         # Arrange
         cli_output = "NAME\t\t\tID\t\t\tSIZE\tMODIFIED\nllama3.1:8b\t\tabc123\t\t5GB\t1 day ago\ngemma:2b\t\tdef456\t\t2GB\t3 days ago\n"
@@ -216,7 +217,7 @@ class TestListLocalModels:
 class TestChooseChatModel:
     """Test cases for choose_chat_model function."""
 
-    def test_ChooseChatModel_WithEnvModelAvailable_ReturnsEnvModel(self):
+    def test_ChooseChatModel_WithEnvModelAvailable_ReturnsEnvModel(self) -> None:
         """Test that environment model is returned when available."""
         # Arrange
         env_model = "custom-model"
@@ -229,7 +230,7 @@ class TestChooseChatModel:
         # Assert
         assert result == "custom-model"
 
-    def test_ChooseChatModel_WithEnvModelUnavailable_ReturnsPreferredModel(self):
+    def test_ChooseChatModel_WithEnvModelUnavailable_ReturnsPreferredModel(self) -> None:
         """Test that preferred model is returned when env model unavailable."""
         # Arrange
         env_model = "unavailable-model"
@@ -242,7 +243,7 @@ class TestChooseChatModel:
         # Assert
         assert result == "mistral"
 
-    def test_ChooseChatModel_WithNoEnvModel_ReturnsPreferredModel(self):
+    def test_ChooseChatModel_WithNoEnvModel_ReturnsPreferredModel(self) -> None:
         """Test that preferred model is returned when no env model specified."""
         # Arrange
         available = ["some-model", "llama3.2", "other-model"]
@@ -254,10 +255,10 @@ class TestChooseChatModel:
         # Assert
         assert result == "llama3.2"
 
-    def test_ChooseChatModel_WithEmptyAvailable_ReturnsNone(self):
+    def test_ChooseChatModel_WithEmptyAvailable_ReturnsNone(self) -> None:
         """Test that None is returned when no models available."""
         # Arrange
-        available = []
+        available: list[str] = []
         
         # Act
         from rag.ollama_check import choose_chat_model
@@ -266,7 +267,7 @@ class TestChooseChatModel:
         # Assert
         assert result is None
 
-    def test_ChooseChatModel_WithNoPreferredModels_ReturnsFirstAvailable(self):
+    def test_ChooseChatModel_WithNoPreferredModels_ReturnsFirstAvailable(self) -> None:
         """Test that first available model is returned when no preferred matches."""
         # Arrange
         available = ["unknown-model-1", "unknown-model-2"]
@@ -278,7 +279,7 @@ class TestChooseChatModel:
         # Assert
         assert result == "unknown-model-1"
 
-    def test_ChooseChatModel_PreferenceOrder_FollowsExpectedPriority(self):
+    def test_ChooseChatModel_PreferenceOrder_FollowsExpectedPriority(self) -> None:
         """Test that model preference order is followed correctly."""
         # Arrange
         available = ["gemma", "mistral", "llama3.3"]
@@ -295,7 +296,7 @@ class TestChooseChatModel:
 class TestEnsureEmbedModel:
     """Test cases for ensure_embed_model function."""
 
-    def test_EnsureEmbedModel_WithExactMatch_ReturnsTrue(self):
+    def test_EnsureEmbedModel_WithExactMatch_ReturnsTrue(self) -> None:
         """Test that exact model match returns True."""
         # Arrange
         model_name = "nomic-embed-text"
@@ -311,7 +312,7 @@ class TestEnsureEmbedModel:
             assert success is True
             assert "available" in message
 
-    def test_EnsureEmbedModel_WithPartialMatch_ReturnsTrue(self):
+    def test_EnsureEmbedModel_WithPartialMatch_ReturnsTrue(self) -> None:
         """Test that partial model match returns True."""
         # Arrange
         model_name = "nomic-embed"
@@ -327,7 +328,7 @@ class TestEnsureEmbedModel:
             assert success is True
             assert "available" in message
 
-    def test_EnsureEmbedModel_WithNoMatch_ReturnsFalse(self):
+    def test_EnsureEmbedModel_WithNoMatch_ReturnsFalse(self) -> None:
         """Test that no model match returns False."""
         # Arrange
         model_name = "missing-model"
@@ -344,7 +345,7 @@ class TestEnsureEmbedModel:
             assert "not found" in message
             assert "ollama pull" in message
 
-    def test_EnsureEmbedModel_CallsListLocalModels_WithCorrectBaseUrl(self):
+    def test_EnsureEmbedModel_CallsListLocalModels_WithCorrectBaseUrl(self) -> None:
         """Test that list_local_models is called with correct base URL."""
         # Arrange
         base_url = "http://custom:8080"
@@ -364,7 +365,7 @@ class TestEnsureEmbedModel:
 class TestDoctor:
     """Test cases for doctor function."""
 
-    def test_Doctor_WithHealthyServer_CompletesSuccessfully(self, mock_console):
+    def test_Doctor_WithHealthyServer_CompletesSuccessfully(self, mock_console: Any) -> None:
         """Test that doctor completes successfully with healthy server."""
         # Arrange
         mock_config = {
@@ -390,7 +391,7 @@ class TestDoctor:
                             # Assert
                             mock_load_config.assert_called_once_with(None)
 
-    def test_Doctor_WithServerDown_ExitsWithError(self, mock_console):
+    def test_Doctor_WithServerDown_ExitsWithError(self, mock_console: Any) -> None:
         """Test that doctor exits when server is down."""
         # Arrange
         mock_config = {
@@ -411,7 +412,7 @@ class TestDoctor:
                     # Assert
                     mock_exit.assert_called_with(1)
 
-    def test_Doctor_WithNoModels_ExitsWithError(self, mock_console):
+    def test_Doctor_WithNoModels_ExitsWithError(self, mock_console: Any) -> None:
         """Test that doctor exits when no models are installed."""
         # Arrange
         mock_config = {
@@ -433,7 +434,7 @@ class TestDoctor:
                         # Assert
                         mock_exit.assert_called_with(1)
 
-    def test_Doctor_WithNoChatModel_ExitsWithError(self, mock_console):
+    def test_Doctor_WithNoChatModel_ExitsWithError(self, mock_console: Any) -> None:
         """Test that doctor exits when no suitable chat model found."""
         # Arrange
         mock_config = {
@@ -457,7 +458,7 @@ class TestDoctor:
                             # Assert
                             mock_exit.assert_called_with(1)
 
-    def test_Doctor_WithSpecificEnvName_PassesToLoadConfig(self, mock_console):
+    def test_Doctor_WithSpecificEnvName_PassesToLoadConfig(self, mock_console: Any) -> None:
         """Test that specific env name is passed to load_config."""
         # Arrange
         mock_config = {
@@ -483,7 +484,7 @@ class TestDoctor:
                             # Assert
                             mock_load_config.assert_called_once_with("production")
 
-    def test_Doctor_WithMissingEmbedModel_ShowsWarning(self, mock_console):
+    def test_Doctor_WithMissingEmbedModel_ShowsWarning(self, mock_console: Any) -> None:
         """Test that doctor shows warning for missing embed model."""
         # Arrange
         mock_config = {

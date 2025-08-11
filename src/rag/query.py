@@ -27,7 +27,7 @@ def ask(
     # Check if index exists
     if not index_dir.exists() or not (index_dir / "docstore.json").exists():
         raise RuntimeError(
-            f"No index found at {index_dir}. Run 'rag ingest' first to build the index."
+            f"No index found at {index_dir}. Run 'vector-bot ingest' first to build the index."
         )
     
     # Setup LLM settings
