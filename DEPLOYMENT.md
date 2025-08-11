@@ -32,6 +32,63 @@ The application supports multiple deployment environments with specific configur
 - Uses Docker-specific paths and networking
 - Ollama at `host.docker.internal:11434`
 
+## CI/CD Pipeline
+
+This project includes comprehensive GitHub Actions workflows for automated testing, building, and deployment:
+
+### Continuous Integration
+- **Multi-platform testing**: Ubuntu, Windows, macOS
+- **Python version matrix**: 3.10, 3.11, 3.12
+- **Automated security scanning**: CodeQL, Bandit, Safety
+- **Code quality checks**: ruff, mypy, pytest
+- **Test coverage**: 99% code coverage requirement
+
+### Continuous Deployment
+- **Automated releases**: Tag-triggered PyPI publishing
+- **Multi-platform executables**: Built for all major platforms
+- **GitHub Releases**: Automatic asset attachment
+
+### GitHub Repository Setup
+
+To enable the CI/CD pipeline in your GitHub repository:
+
+1. **Push the code to GitHub:**
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit with CI/CD setup"
+   git remote add origin https://github.com/yourusername/local-ollama-rag-poc.git
+   git push -u origin main
+   ```
+
+2. **Configure Repository Secrets:**
+   - Go to Settings → Secrets and variables → Actions
+   - Add `PYPI_API_TOKEN` for PyPI publishing
+   - This token is required for the release workflow
+
+3. **Enable GitHub Actions:**
+   - Actions should be enabled by default
+   - First push will trigger the CI workflow
+   - Check Actions tab to see workflow runs
+
+4. **Configure Branch Protection (Optional):**
+   - Go to Settings → Branches
+   - Add rule for `main` branch
+   - Enable "Require status checks to pass"
+   - Select CI workflow checks
+
+5. **Create a Release:**
+   ```bash
+   git tag v1.0.1
+   git push origin v1.0.1
+   ```
+   This triggers the release workflow which:
+   - Publishes to PyPI
+   - Builds executables for all platforms
+   - Creates GitHub release with assets
+
+See `.github/workflows/` for workflow configurations.
+
 ## Deployment Methods
 
 ### 1. Standalone Executable
@@ -60,8 +117,23 @@ rag --config-info --env production
 
 ### 2. Python Package Installation
 
-For environments with Python already installed:
+#### From PyPI (Recommended)
+```bash
+# Install from PyPI
+pip install local-ollama-rag
 
+# Set environment
+export RAG_ENV=production
+export DOCS_DIR=/data/documents
+export INDEX_DIR=/data/index_storage
+
+# Run commands
+rag doctor
+rag ingest
+rag query "your question"
+```
+
+#### From Source
 ```bash
 # Install in production environment
 pip install -e .

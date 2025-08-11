@@ -1,4 +1,4 @@
-"""Simple unit test for the RAG system."""
+"""Integration tests for the RAG system that require external dependencies."""
 
 import os
 import sys
@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from llama_index.core import Document, VectorStoreIndex
 from rag.ollama_check import check_server

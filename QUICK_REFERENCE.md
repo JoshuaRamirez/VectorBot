@@ -73,6 +73,25 @@ rag query "details?" --show-sources     # Show sources
 | "No documents found" | Add files to `docs/` |
 | "Index not found" | Run `rag ingest` |
 
+## Development Commands
+
+```bash
+# Run tests
+pytest tests/ -v
+python run_tests.py
+
+# Test coverage
+pytest tests/ --cov=rag
+
+# Code quality
+ruff check src/
+mypy src/
+
+# Security scan
+safety check
+bandit -r src/
+```
+
 ## Quick Tips
 
 - **Add documents**: Drop files in `docs/` folder
@@ -80,7 +99,9 @@ rag query "details?" --show-sources     # Show sources
 - **Better answers**: Try `--k 6` for more context
 - **Find sources**: Use `--show-sources` flag
 - **Check config**: Use `rag --config-info`
+- **Run tests**: Use `pytest tests/` or `python run_tests.py`
+- **Contribute**: See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
-*Full documentation: [USER_GUIDE.md](USER_GUIDE.md)*
+*Full documentation: [USER_GUIDE.md](USER_GUIDE.md) | Testing: [TESTING.md](TESTING.md)*

@@ -508,6 +508,47 @@ rag --version
 | "No documents found" | Empty docs directory | Add files to `docs/` folder |
 | "Index not found" | Haven't built index | Run `rag ingest` first |
 
+## Development and Testing
+
+If you're contributing to the project or want to run tests:
+
+### Running Tests
+
+```bash
+# Install development dependencies
+pip install -e ".[dev]"
+
+# Run all tests
+pytest tests/ -v
+
+# Run unit tests only
+pytest tests/unit/ -v
+
+# Run with coverage report
+pytest tests/ --cov=rag --cov-report=html
+
+# Use the test runner script
+python run_tests.py
+```
+
+### Code Quality Checks
+
+```bash
+# Type checking
+mypy src/
+
+# Linting
+ruff check src/
+
+# Security scanning
+safety check
+bandit -r src/
+```
+
+### Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines.
+
 ---
 
 ## Quick Reference Card

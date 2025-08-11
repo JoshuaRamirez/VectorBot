@@ -1,0 +1,50 @@
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "yourusername"  # Replace with actual maintainer GitHub username
+    assignees:
+      - "yourusername"  # Replace with actual maintainer GitHub username
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+    labels:
+      - "dependencies"
+      - "python"
+    # Group dependency updates to reduce PR noise
+    groups:
+      llama-index:
+        patterns:
+          - "llama-index*"
+      development:
+        dependency-type: "development"
+        patterns:
+          - "pytest*"
+          - "mypy*"
+          - "ruff*"
+          - "types-*"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "yourusername"  # Replace with actual maintainer GitHub username
+    assignees:
+      - "yourusername"  # Replace with actual maintainer GitHub username
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dependencies"
+      - "github-actions"

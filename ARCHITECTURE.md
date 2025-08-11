@@ -475,6 +475,52 @@ except Exception as e:
     return 1
 ```
 
+## Testing Architecture
+
+### **Test Structure**
+
+```
+tests/
+├── unit/                  # Isolated unit tests
+│   ├── test_cli.py       # CLI interface tests
+│   ├── test_config.py    # Configuration tests
+│   ├── test_ingest.py    # Ingestion logic tests
+│   ├── test_query.py     # Query processing tests
+│   └── test_ollama_check.py  # Health check tests
+├── integration/          # End-to-end tests
+│   └── test_integration.py
+├── conftest.py          # Shared fixtures
+└── README.md            # Testing documentation
+```
+
+### **Testing Strategy**
+
+| Test Type | Purpose | Characteristics |
+|-----------|---------|-----------------|
+| **Unit Tests** | Test individual functions | Fully mocked, < 1s execution |
+| **Integration Tests** | Test component interaction | Partial mocking, < 5s execution |
+| **Smoke Tests** | Validate basic functionality | Real execution, requires Ollama |
+
+### **Mocking Strategy**
+
+```python
+# External dependencies are fully mocked
+@patch("requests.get")
+@patch("llama_index.llms.ollama.Ollama")
+@patch.object(Path, "exists")
+def test_function(mock_path, mock_ollama, mock_requests):
+    # Test runs completely offline
+    # No network calls or file system access
+    pass
+```
+
+### **Test Coverage Goals**
+
+- **Core Logic**: 90%+ coverage
+- **Error Paths**: All exceptions tested
+- **Edge Cases**: Empty inputs, large files, timeouts
+- **Platform Independence**: Tests pass on all OS
+
 ## Extensibility Points
 
 ### **Adding New Document Types**

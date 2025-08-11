@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Build script to create executable from the RAG CLI."""
 
+import importlib.util
 import subprocess
 import sys
 from pathlib import Path
@@ -9,11 +10,9 @@ def build_executable():
     """Build executable using PyInstaller."""
     
     # Install PyInstaller if not available
-    try:
-        import PyInstaller
-    except ImportError:
+    if importlib.util.find_spec("PyInstaller") is None:
         print("Installing PyInstaller...")
-        subprocess.run([sys.executable, "-m", "pip", "install", "pyinstaller"])
+        subprocess.run([sys.executable, "-m", "pip", "install", "pyinstaller"], check=False)
     
     # Create a simple entry point script
     entry_script = Path("rag_main.py")

@@ -1,0 +1,1 @@
+"""Unit tests package for the local-ollama-rag project."""

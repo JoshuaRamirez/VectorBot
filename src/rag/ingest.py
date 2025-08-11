@@ -1,6 +1,5 @@
 """Document ingestion module for building and persisting vector index."""
 
-import os
 from pathlib import Path
 from typing import List, Optional
 
@@ -75,7 +74,7 @@ def load_documents(docs_dir: Path) -> List:
     extensions = [".txt", ".md", ".pdf", ".json", ".csv"]
     
     # Check for documents
-    doc_files = []
+    doc_files: list[Path] = []
     for ext in extensions:
         doc_files.extend(docs_dir.glob(f"*{ext}"))
         doc_files.extend(docs_dir.glob(f"**/*{ext}"))
@@ -85,7 +84,7 @@ def load_documents(docs_dir: Path) -> List:
         return []
     
     # Filter out large files (>20MB)
-    valid_files = []
+    valid_files: list[Path] = []
     for file in doc_files:
         size_mb = file.stat().st_size / (1024 * 1024)
         if size_mb > 20:

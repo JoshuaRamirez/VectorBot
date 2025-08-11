@@ -105,7 +105,7 @@ def load_config(env_name: Optional[str] = None) -> Dict[str, Any]:
     # Get executable directory for resolving relative paths
     executable_dir = get_executable_dir()
     
-    def resolve_path(path_str: str, base_dir: Path = None) -> Path:
+    def resolve_path(path_str: str, base_dir: Optional[Path] = None) -> Path:
         """Resolve a path relative to executable directory."""
         path = Path(path_str)
         if path.is_absolute():
@@ -135,7 +135,7 @@ def load_config(env_name: Optional[str] = None) -> Dict[str, Any]:
     return config
 
 
-def get_config_value(key: str, default: Optional[str] = None, env_name: Optional[str] = None) -> Optional[str]:
+def get_config_value(key: str, default: Optional[str] = None, env_name: Optional[str] = None) -> Any:
     """Get a specific configuration value."""
     config = load_config(env_name)
     return config.get(key, default)

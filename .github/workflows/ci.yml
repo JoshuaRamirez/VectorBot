@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Lint with ruff
+      run: |
+        ruff check src/ tests/
+
+    - name: Type check with mypy
+      run: |
+        mypy src/
+
+    - name: Test with pytest
+      run: |
+        pytest tests/ -v --tb=short
+
+    - name: Build package
+      run: |
+        pip install build
+        python -m build
+
+    - name: Test package installation
+      run: |
+        pip install dist/*.whl
+        rag --help
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety bandit
+
+    - name: Check dependencies for vulnerabilities
+      run: |
+        safety check --json
+
+    - name: Security analysis with bandit
+      run: |
+        bandit -r src/ -f json
+
+  build-executable:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install pyinstaller
+
+    - name: Build executable
+      run: |
+        python build_executable.py
+
+    - name: Test executable (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        ./dist/rag --help
+
+    - name: Test executable (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        ./dist/rag.exe --help
+
+    - name: Upload executable artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: rag-${{ runner.os }}
+        path: |
+          dist/rag*
+        retention-days: 30

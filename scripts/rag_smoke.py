@@ -10,17 +10,18 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from llama_index.core import Document, Settings, VectorStoreIndex
-from llama_index.embeddings.ollama import OllamaEmbedding
-from llama_index.llms.ollama import Ollama
+from llama_index.embeddings.ollama import OllamaEmbedding  # type: ignore[reportMissingTypeStubs]
+from llama_index.llms.ollama import Ollama  # type: ignore[reportMissingTypeStubs]
 from rich.console import Console
 
+from typing import Any
 from rag.config import load_config
 from rag.ollama_check import check_server, choose_chat_model, ensure_embed_model, list_local_models
 
 console = Console()
 
 
-def run_smoke_test(env_name=None):
+def run_smoke_test(env_name: str | None = None) -> int:
     """Run a simple smoke test with in-memory documents."""
     console.print("[bold]RAG Smoke Test[/bold]\n")
     
@@ -34,7 +35,7 @@ def run_smoke_test(env_name=None):
     console.print("Checking Ollama server...")
     if not check_server(base_url):
         console.print("[red]✗ Ollama server not running[/red]")
-        console.print(f"Start it with: ollama serve")
+        console.print("Start it with: ollama serve")
         sys.exit(1)
     console.print("[green]OK Ollama server is running[/green]")
     
@@ -108,7 +109,7 @@ def run_smoke_test(env_name=None):
     index = VectorStoreIndex.from_documents(docs)
     
     # Create query engine
-    query_engine = index.as_query_engine(similarity_top_k=2)
+    query_engine: Any = index.as_query_engine(similarity_top_k=2)
     
     # Test query
     test_question = "What are the approval steps?"
