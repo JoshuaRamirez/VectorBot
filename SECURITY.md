@@ -15,7 +15,7 @@ The Vector Bot team takes security seriously. If you discover a security vulnera
 ### How to Report
 
 1. **DO NOT** open a public GitHub issue for security vulnerabilities
-2. Send an email to: [security@example.com] (replace with actual email)
+2. Send an email to: joshuaramirez@[domain] or create a private security advisory on GitHub
 3. Include as much detail as possible about the vulnerability
 
 ### What to Include
@@ -96,8 +96,8 @@ We follow responsible disclosure practices:
 ## Security Contact
 
 For security-related questions or reports:
-- Email: [security@example.com] (replace with actual email)
-- GPG Key: [Link to public key if available]
+- Email: joshuaramirez@[domain] or use GitHub's private security advisory feature
+- GitHub Security Advisories: https://github.com/joshuaramirez/vector-bot/security/advisories
 
 ## Acknowledgments
 

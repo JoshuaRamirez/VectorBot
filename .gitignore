@@ -65,6 +65,10 @@ dmypy.json
 # pytype static type analyzer
 .pytype/
 
+# Coverage reports
+.coverage
+.coverage.*
+
 # Cython debug symbols
 cython_debug/
 
