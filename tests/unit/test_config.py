@@ -239,13 +239,48 @@ class TestLoadConfig:
             with patch('rag.config.get_executable_dir') as mock_get_dir:
                 mock_get_dir.return_value = Path('/test')
                 with patch('rag.config.validate_config', return_value=True):
-                    
-                    # Act
-                    from rag.config import load_config
-                    load_config('production')
-                    
-                    # Assert
-                    mock_load_env.assert_called_once_with('production')
+                    with patch('rag.config.resolve_store', return_value=None):
+
+                        # Act
+                        from rag.config import load_config
+                        load_config('production')
+
+                        # Assert
+                        mock_load_env.assert_called_once_with('production')
+
+    def test_LoadConfig_WithStoreName_CallsLoadStoreConfig(self, clean_environment):
+        """Test that store_name triggers store-based config loading."""
+        # Arrange
+        mock_store = Mock()
+        mock_store.name = 'test_store'
+        mock_store.docs_dir = '/test/docs'
+        mock_store.chat_model = 'llama3.1'
+        mock_store.description = 'Test store'
+
+        with patch('rag.config.load_environment_config'):
+            with patch('rag.config.resolve_store', return_value=mock_store):
+                with patch('rag.config.get_store_index_dir', return_value=Path('/test/index')):
+                    with patch('rag.config.get_global_config', return_value={}):
+                        with patch('rag.config.validate_config', return_value=True):
+
+                            # Act
+                            from rag.config import load_config
+                            config = load_config(store_name='test_store')
+
+                            # Assert
+                            assert config["DOCS_DIR"] == Path('/test/docs')
+                            assert config["_store_name"] == 'test_store'
+
+    def test_LoadConfig_WithNonExistentStore_RaisesValueError(self, clean_environment):
+        """Test that load_config raises ValueError when store doesn't exist."""
+        # Arrange
+        with patch('rag.config.load_environment_config'):
+            with patch('rag.config.resolve_store', return_value=None):
+
+                # Act & Assert
+                from rag.config import load_config
+                with pytest.raises(ValueError, match="Store 'nonexistent' not found"):
+                    load_config(store_name='nonexistent')
 
 
 class TestGetConfigValue:
@@ -285,13 +320,44 @@ class TestGetConfigValue:
         with patch('rag.config.load_config') as mock_load_config:
             mock_config = {"TEST_KEY": "test_value"}
             mock_load_config.return_value = mock_config
-            
+
             # Act
             from rag.config import get_config_value
             get_config_value("TEST_KEY", env_name="production")
-            
+
             # Assert
-            mock_load_config.assert_called_once_with("production")
+            # load_config now takes (env_name, store_name) - store_name defaults to None
+            mock_load_config.assert_called_once_with("production", None)
+
+    def test_GetConfigValue_WithStoreName_PassesToLoadConfig(self, clean_environment):
+        """Test that store_name is passed to load_config."""
+        # Arrange
+        with patch('rag.config.load_config') as mock_load_config:
+            mock_config = {"TEST_KEY": "store_value"}
+            mock_load_config.return_value = mock_config
+
+            # Act
+            from rag.config import get_config_value
+            result = get_config_value("TEST_KEY", store_name="my_store")
+
+            # Assert
+            mock_load_config.assert_called_once_with(None, "my_store")
+            assert result == "store_value"
+
+    def test_GetConfigValue_WithBothEnvAndStoreName_PassesBothToLoadConfig(self, clean_environment):
+        """Test that both env_name and store_name are passed to load_config."""
+        # Arrange
+        with patch('rag.config.load_config') as mock_load_config:
+            mock_config = {"TEST_KEY": "combined_value"}
+            mock_load_config.return_value = mock_config
+
+            # Act
+            from rag.config import get_config_value
+            result = get_config_value("TEST_KEY", env_name="prod", store_name="my_store")
+
+            # Assert
+            mock_load_config.assert_called_once_with("prod", "my_store")
+            assert result == "combined_value"
 
 
 class TestResolvePath:
@@ -321,19 +387,28 @@ class TestResolvePath:
 
     def test_LoadConfig_KeepsAbsolutePaths_Unchanged(self, clean_environment):
         """Test that absolute paths are kept unchanged."""
-        # Arrange
-        os.environ["DOCS_DIR"] = "/absolute/docs"
-        os.environ["INDEX_DIR"] = "/absolute/index"
-        
+        # Arrange - use platform-appropriate absolute paths
+        import sys
+        if sys.platform == 'win32':
+            abs_docs = "C:\\absolute\\docs"
+            abs_index = "C:\\absolute\\index"
+        else:
+            abs_docs = "/absolute/docs"
+            abs_index = "/absolute/index"
+
+        os.environ["DOCS_DIR"] = abs_docs
+        os.environ["INDEX_DIR"] = abs_index
+
         with patch('rag.config.load_environment_config'):
             with patch('rag.config.get_executable_dir') as mock_get_dir:
                 mock_get_dir.return_value = Path('/project_root')
                 with patch('rag.config.validate_config', return_value=True):
-                    
-                    # Act
-                    from rag.config import load_config
-                    config = load_config()
-                    
-                    # Assert
-                    assert config["DOCS_DIR"] == Path("/absolute/docs")
-                    assert config["INDEX_DIR"] == Path("/absolute/index")
+                    with patch('rag.config.resolve_store', return_value=None):
+
+                        # Act
+                        from rag.config import load_config
+                        config = load_config()
+
+                        # Assert - paths should remain absolute (not relative to project_root)
+                        assert config["DOCS_DIR"] == Path(abs_docs)
+                        assert config["INDEX_DIR"] == Path(abs_index)
