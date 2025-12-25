@@ -862,6 +862,185 @@ class TestResolveStore:
             resolve_store(None)
 
 
+class TestSaveGlobalConfigErrors:
+    """Test cases for save_global_config error handling."""
+
+    def test_SaveGlobalConfig_WhenWriteFails_RaisesOSError(
+        self, mock_stores_home: Path, mock_console: Any
+    ) -> None:
+        """Test that save_global_config raises OSError when write fails."""
+        # Arrange
+        config = {"default_store": "test-store"}
+
+        # Mock open to raise OSError when writing
+        with patch("builtins.open", side_effect=OSError("Permission denied")):
+            # Act & Assert
+            with pytest.raises(OSError, match="Failed to save global config"):
+                save_global_config(config)
+
+
+class TestCreateStoreErrors:
+    """Test cases for create_store error handling."""
+
+    def test_CreateStore_WhenWriteConfigFails_CleansUpAndRaisesOSError(
+        self, mock_stores_home: Path, mock_console: Any
+    ) -> None:
+        """Test that create_store cleans up and raises OSError when config write fails."""
+        # Arrange
+        docs_dir = Path("/path/to/docs")
+        store_name = "fail-store"
+        store_dir = mock_stores_home / "stores" / store_name
+
+        # Create a mock that allows mkdir but fails on open for store.json
+        original_open = open
+
+        def mock_open_func(path: Any, *args: Any, **kwargs: Any) -> Any:
+            if "store.json" in str(path) and "w" in args:
+                raise OSError("Disk full")
+            return original_open(path, *args, **kwargs)
+
+        with patch("builtins.open", side_effect=mock_open_func):
+            # Act & Assert
+            with pytest.raises(OSError, match="Failed to create store configuration"):
+                create_store(store_name, docs_dir)
+
+        # Verify cleanup occurred - store directory should not exist
+        assert not store_dir.exists()
+
+
+class TestUpdateStoreErrors:
+    """Test cases for update_store error handling."""
+
+    def test_UpdateStore_WhenWriteFails_RaisesOSError(
+        self, mock_stores_home: Path, mock_console: Any
+    ) -> None:
+        """Test that update_store raises OSError when config write fails."""
+        # Arrange
+        docs_dir = Path("/path/to/docs")
+        create_store("my-store", docs_dir)
+
+        # Create a mock file object that raises on write
+        mock_file = MagicMock()
+        mock_file.__enter__ = MagicMock(return_value=mock_file)
+        mock_file.__exit__ = MagicMock(return_value=False)
+        mock_file.write = MagicMock(side_effect=OSError("Write failed"))
+
+        # Mock open specifically in rag.store module for write operations
+        original_open = open
+
+        def mock_open_for_update(path: Any, mode: str = "r", *args: Any, **kwargs: Any) -> Any:
+            if "store.json" in str(path) and "w" in mode:
+                raise OSError("Write failed")
+            return original_open(path, mode, *args, **kwargs)
+
+        with patch("builtins.open", side_effect=mock_open_for_update):
+            # Act & Assert
+            with pytest.raises(OSError, match="Failed to update store configuration"):
+                update_store("my-store", chunk_count=100)
+
+    def test_UpdateStore_WithDocsDir_Path_ConvertsToAbsolute(
+        self, mock_stores_home: Path, mock_console: Any
+    ) -> None:
+        """Test that update_store handles Path object for docs_dir conversion."""
+        # Arrange
+        docs_dir = Path("/path/to/docs")
+        create_store("my-store", docs_dir)
+
+        # Act - pass a Path object that is relative
+        new_docs = Path("relative/path")
+        result = update_store("my-store", docs_dir=new_docs)
+
+        # Assert - should be converted to absolute path
+        assert Path(result["docs_dir"]).is_absolute()
+
+
+class TestDeleteStoreErrors:
+    """Test cases for delete_store error handling."""
+
+    def test_DeleteStore_WhenRmtreeFails_RaisesOSError(
+        self, mock_stores_home: Path, mock_console: Any
+    ) -> None:
+        """Test that delete_store raises OSError when rmtree fails."""
+        # Arrange
+        docs_dir = Path("/path/to/docs")
+        create_store("my-store", docs_dir)
+
+        # Mock shutil.rmtree to fail
+        with patch("rag.store.shutil.rmtree", side_effect=OSError("Permission denied")):
+            # Act & Assert
+            with pytest.raises(OSError, match="Failed to delete store"):
+                delete_store("my-store")
+
+
+class TestRenameStoreErrors:
+    """Test cases for rename_store error handling."""
+
+    def test_RenameStore_WhenRenameFails_RaisesOSError(
+        self, mock_stores_home: Path, mock_console: Any
+    ) -> None:
+        """Test that rename_store raises OSError when directory rename fails."""
+        # Arrange
+        docs_dir = Path("/path/to/docs")
+        create_store("old-name", docs_dir)
+
+        # Mock Path.rename to fail
+        with patch.object(Path, "rename", side_effect=OSError("Cross-device link")):
+            # Act & Assert
+            with pytest.raises(OSError, match="Failed to rename store"):
+                rename_store("old-name", "new-name")
+
+
+class TestListStoresEdgeCases:
+    """Test edge cases for list_stores function."""
+
+    def test_ListStores_SkipsNonDirectoryEntries(
+        self, mock_stores_home: Path, mock_console: Any
+    ) -> None:
+        """Test that list_stores skips files (non-directory entries) in stores dir."""
+        # Arrange
+        stores_dir = mock_stores_home / "stores"
+        stores_dir.mkdir(parents=True, exist_ok=True)
+
+        # Create a valid store
+        valid_store = stores_dir / "valid-store"
+        valid_store.mkdir()
+        (valid_store / "store.json").write_text(json.dumps({"name": "valid-store"}))
+
+        # Create a file (not a directory) in stores dir - should be skipped
+        (stores_dir / "not-a-directory.txt").write_text("This is a file, not a store")
+
+        # Act
+        stores = list_stores()
+
+        # Assert
+        assert len(stores) == 1
+        assert stores[0]["name"] == "valid-store"
+
+
+class TestSetDefaultStoreEdgeCases:
+    """Test edge cases for set_default_store function."""
+
+    def test_SetDefaultStore_WithInvalidName_RaisesValueError(
+        self, mock_stores_home: Path, mock_console: Any
+    ) -> None:
+        """Test that set_default_store raises ValueError for invalid store names."""
+        # Arrange & Act & Assert
+        with pytest.raises(ValueError, match="Invalid store name"):
+            set_default_store("invalid name with spaces")
+
+
+class TestResolveStoreEdgeCases:
+    """Test edge cases for resolve_store function."""
+
+    def test_ResolveStore_WithInvalidExplicitName_RaisesValueError(
+        self, mock_stores_home: Path, mock_console: Any
+    ) -> None:
+        """Test that resolve_store validates explicit store name format."""
+        # Arrange & Act & Assert
+        with pytest.raises(ValueError, match="Invalid store name"):
+            resolve_store("invalid name with spaces")
+
+
 class TestStoreNamePattern:
     """Test cases for STORE_NAME_PATTERN regex."""
 

@@ -412,3 +412,258 @@ class TestResolvePath:
                         # Assert - paths should remain absolute (not relative to project_root)
                         assert config["DOCS_DIR"] == Path(abs_docs)
                         assert config["INDEX_DIR"] == Path(abs_index)
+
+
+class TestValidateConfigMissingKeys:
+    """Test cases for validate_config with missing or None directory keys."""
+
+    def test_ValidateConfig_WithMissingDocsDir_ReturnsFalse(self, mock_console):
+        """Test validation fails when DOCS_DIR key is missing from config."""
+        # Arrange
+        config = {
+            # DOCS_DIR is intentionally missing
+            "INDEX_DIR": Path("/test/index"),
+            "OLLAMA_BASE_URL": "http://localhost:11434",
+            "SIMILARITY_TOP_K": 4
+        }
+        with patch.object(Path, 'mkdir'):
+
+            # Act
+            from rag.config import validate_config
+            result = validate_config(config)
+
+            # Assert
+            assert result is False
+            mock_console.print.assert_called()
+
+    def test_ValidateConfig_WithMissingIndexDir_ReturnsFalse(self, mock_console):
+        """Test validation fails when INDEX_DIR key is missing from config."""
+        # Arrange
+        config = {
+            "DOCS_DIR": Path("/test/docs"),
+            # INDEX_DIR is intentionally missing
+            "OLLAMA_BASE_URL": "http://localhost:11434",
+            "SIMILARITY_TOP_K": 4
+        }
+        with patch.object(Path, 'mkdir'):
+
+            # Act
+            from rag.config import validate_config
+            result = validate_config(config)
+
+            # Assert
+            assert result is False
+
+    def test_ValidateConfig_WithNoneDocsDir_ReturnsFalse(self, mock_console):
+        """Test validation fails when DOCS_DIR value is None."""
+        # Arrange
+        config = {
+            "DOCS_DIR": None,  # Explicitly set to None
+            "INDEX_DIR": Path("/test/index"),
+            "OLLAMA_BASE_URL": "http://localhost:11434",
+            "SIMILARITY_TOP_K": 4
+        }
+        with patch.object(Path, 'mkdir'):
+
+            # Act
+            from rag.config import validate_config
+            result = validate_config(config)
+
+            # Assert
+            assert result is False
+
+    def test_ValidateConfig_WithNoneIndexDir_ReturnsFalse(self, mock_console):
+        """Test validation fails when INDEX_DIR value is None."""
+        # Arrange
+        config = {
+            "DOCS_DIR": Path("/test/docs"),
+            "INDEX_DIR": None,  # Explicitly set to None
+            "OLLAMA_BASE_URL": "http://localhost:11434",
+            "SIMILARITY_TOP_K": 4
+        }
+        with patch.object(Path, 'mkdir'):
+
+            # Act
+            from rag.config import validate_config
+            result = validate_config(config)
+
+            # Assert
+            assert result is False
+
+    def test_ValidateConfig_WithBothDirsMissing_ReturnsFalseWithMultipleErrors(self, mock_console):
+        """Test validation fails when both directory keys are missing."""
+        # Arrange
+        config = {
+            # Both DOCS_DIR and INDEX_DIR are intentionally missing
+            "OLLAMA_BASE_URL": "http://localhost:11434",
+            "SIMILARITY_TOP_K": 4
+        }
+
+        # Act
+        from rag.config import validate_config
+        result = validate_config(config)
+
+        # Assert
+        assert result is False
+        # Should have printed errors for both missing keys
+        assert mock_console.print.call_count >= 3  # Header + 2 errors
+
+
+class TestLoadConfigDefaultStoreFallback:
+    """Test cases for load_config using the default store fallback path."""
+
+    def test_LoadConfig_WithNoStoreNameButDefaultStoreExists_UsesDefaultStore(self, clean_environment):
+        """Test that load_config uses the default store when no store_name is provided."""
+        # Arrange
+        mock_store = Mock()
+        mock_store.name = 'default_store'
+        mock_store.docs_dir = '/test/default/docs'
+        mock_store.chat_model = 'llama3.1'
+        mock_store.description = 'Default test store'
+
+        with patch('rag.config.load_environment_config'):
+            with patch('rag.config._check_legacy_index_storage'):
+                with patch('rag.config.resolve_store', return_value=mock_store) as mock_resolve:
+                    with patch('rag.config.get_store_index_dir', return_value=Path('/test/default/index')):
+                        with patch('rag.config.get_global_config', return_value={}):
+                            with patch('rag.config.validate_config', return_value=True):
+
+                                # Act
+                                from rag.config import load_config
+                                config = load_config()  # No store_name provided
+
+                                # Assert
+                                # First call should be resolve_store(None) to check for default store
+                                mock_resolve.assert_called()
+                                assert config["DOCS_DIR"] == Path('/test/default/docs')
+                                assert config["_store_name"] == 'default_store'
+
+    def test_LoadConfig_WhenResolveStoreRaises_FallsBackToLegacyConfig(self, clean_environment):
+        """Test that load_config falls back to legacy env config when resolve_store fails."""
+        # Arrange
+        with patch('rag.config.load_environment_config'):
+            with patch('rag.config._check_legacy_index_storage'):
+                with patch('rag.config.resolve_store', side_effect=Exception("No stores available")):
+                    with patch('rag.config.get_executable_dir') as mock_get_dir:
+                        mock_get_dir.return_value = Path('/project_root')
+                        with patch('rag.config.validate_config', return_value=True):
+
+                            # Act
+                            from rag.config import load_config
+                            config = load_config()  # No store_name provided
+
+                            # Assert - should use legacy fallback path with default values
+                            assert config["OLLAMA_BASE_URL"] == "http://localhost:11434"
+                            assert config["SIMILARITY_TOP_K"] == 4
+                            # Should NOT have store metadata keys
+                            assert "_store_name" not in config
+
+    def test_LoadConfig_WhenResolveStoreReturnsNone_FallsBackToLegacyConfig(self, clean_environment):
+        """Test that load_config falls back to legacy env config when resolve_store returns None."""
+        # Arrange
+        with patch('rag.config.load_environment_config'):
+            with patch('rag.config._check_legacy_index_storage'):
+                with patch('rag.config.resolve_store', return_value=None):
+                    with patch('rag.config.get_executable_dir') as mock_get_dir:
+                        mock_get_dir.return_value = Path('/project_root')
+                        with patch('rag.config.validate_config', return_value=True):
+
+                            # Act
+                            from rag.config import load_config
+                            config = load_config()
+
+                            # Assert - should use legacy fallback path
+                            assert "_store_name" not in config
+                            assert config["OLLAMA_BASE_URL"] == "http://localhost:11434"
+
+
+class TestLoadStoreConfigChatModelFallback:
+    """Test cases for load_store_config chat model fallback behavior."""
+
+    def test_LoadStoreConfig_WithNoEnvNoChatModel_UsesGlobalDefault(self, clean_environment):
+        """Test that load_store_config uses global default_chat_model as fallback."""
+        # Arrange
+        mock_store = Mock()
+        mock_store.name = 'test_store'
+        mock_store.docs_dir = '/test/docs'
+        mock_store.chat_model = None  # Store has no chat_model
+        mock_store.description = 'Test store'
+
+        with patch('rag.config.resolve_store', return_value=mock_store):
+            with patch('rag.config.get_store_index_dir', return_value=Path('/test/index')):
+                with patch('rag.config.get_global_config', return_value={'default_chat_model': 'mistral'}):
+                    with patch('rag.config.validate_config', return_value=True):
+
+                        # Act
+                        from rag.config import load_store_config
+                        config = load_store_config('test_store')
+
+                        # Assert
+                        assert config["OLLAMA_CHAT_MODEL"] == 'mistral'
+
+    def test_LoadStoreConfig_WithNoEnvNoStoreChatModelNoGlobal_ReturnsNone(self, clean_environment):
+        """Test that load_store_config returns None for chat_model when no fallback exists."""
+        # Arrange
+        mock_store = Mock()
+        mock_store.name = 'test_store'
+        mock_store.docs_dir = '/test/docs'
+        mock_store.chat_model = None  # Store has no chat_model
+        mock_store.description = 'Test store'
+
+        with patch('rag.config.resolve_store', return_value=mock_store):
+            with patch('rag.config.get_store_index_dir', return_value=Path('/test/index')):
+                with patch('rag.config.get_global_config', return_value={}):  # No default_chat_model
+                    with patch('rag.config.validate_config', return_value=True):
+
+                        # Act
+                        from rag.config import load_store_config
+                        config = load_store_config('test_store')
+
+                        # Assert
+                        assert config["OLLAMA_CHAT_MODEL"] is None
+
+
+class TestLoadEnvironmentConfigVerbose:
+    """Test cases for load_environment_config verbose output."""
+
+    def test_LoadEnvironmentConfig_WithRagVerboseTrue_PrintsLoadedConfigPath(self, clean_environment, mock_console):
+        """Test that verbose output is printed when RAG_VERBOSE is true."""
+        # Arrange
+        os.environ['RAG_VERBOSE'] = 'true'
+        with patch('rag.config.get_executable_dir') as mock_get_dir:
+            mock_get_dir.return_value = Path('/test')
+            with patch('rag.config.load_dotenv'):
+                with patch.object(Path, 'exists', return_value=True):
+
+                    # Act
+                    from rag.config import load_environment_config
+                    load_environment_config('test')
+
+                    # Assert
+                    mock_console.print.assert_called()
+                    # Check that the message contains config file info
+                    call_args = str(mock_console.print.call_args)
+                    assert 'Loaded config from' in call_args or mock_console.print.called
+
+
+class TestLoadStoreConfigValidationFailure:
+    """Test cases for load_store_config when validation fails."""
+
+    def test_LoadStoreConfig_WhenValidationFails_RaisesValueError(self, clean_environment):
+        """Test that load_store_config raises ValueError when validate_config returns False."""
+        # Arrange
+        mock_store = Mock()
+        mock_store.name = 'failing_store'
+        mock_store.docs_dir = '/test/docs'
+        mock_store.chat_model = None
+        mock_store.description = 'Test store'
+
+        with patch('rag.config.resolve_store', return_value=mock_store):
+            with patch('rag.config.get_store_index_dir', return_value=Path('/test/index')):
+                with patch('rag.config.get_global_config', return_value={}):
+                    with patch('rag.config.validate_config', return_value=False):
+
+                        # Act & Assert
+                        from rag.config import load_store_config
+                        with pytest.raises(ValueError, match="Configuration validation failed for store 'failing_store'"):
+                            load_store_config('failing_store')

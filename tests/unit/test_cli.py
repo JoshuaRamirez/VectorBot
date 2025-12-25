@@ -78,6 +78,32 @@ class TestMain:
                     assert result == 0
                     mock_doctor.assert_called_once_with(verbose=True)
 
+    def test_Doctor_WithStores_ShowsStoresWithDefaultMarker(self, mock_console: Any) -> None:
+        """Test that doctor lists stores with * marker for default store."""
+        # Arrange
+        argv = ["doctor"]
+
+        mock_stores = [
+            {"name": "store1"},
+            {"name": "store2"},
+            {"name": "default-store"},
+        ]
+
+        with patch('rag.cli.run_doctor') as mock_doctor:
+            with patch('rag.cli.list_stores', return_value=mock_stores):
+                with patch('rag.cli.get_default_store', return_value="default-store"):
+                    # Act
+                    from rag.cli import main
+                    result = main(argv)
+
+                    # Assert
+                    assert result == 0
+                    mock_doctor.assert_called_once_with(verbose=False)
+                    # Check that stores are printed with the default marker
+                    mock_console.print.assert_any_call("  - store1")
+                    mock_console.print.assert_any_call("  - store2")
+                    mock_console.print.assert_any_call("  - default-store *")
+
     def test_Main_WithIngestCommand_CallsIngestFunction(self, mock_console: Any) -> None:
         """Test that ingest command calls ingest function."""
         # Arrange
@@ -645,6 +671,146 @@ class TestStoreCommands:
             # Assert
             assert result == 1
 
+    def test_StoreNew_WithoutDocsArg_PromptsAndSucceeds(self, mock_console: Any) -> None:
+        """Test that store new prompts for docs path when not provided."""
+        # Arrange
+        argv = ["store", "new", "my-store"]
+
+        with patch('rag.cli.create_store') as mock_create:
+            with patch('rag.cli.list_stores', return_value=[{"name": "my-store"}]):
+                with patch('rag.cli.set_default_store'):
+                    with patch('rag.cli.console') as mock_cli_console:
+                        # Mock input to return a path
+                        mock_cli_console.input.return_value = "/path/to/docs"
+                        mock_cli_console.print = mock_console.print
+
+                        # Act
+                        from rag.cli import main
+                        result = main(argv)
+
+                        # Assert
+                        assert result == 0
+                        mock_create.assert_called_once_with("my-store", Path("/path/to/docs"))
+
+    def test_StoreNew_WithEmptyDocsInput_ReturnsOne(self, mock_console: Any) -> None:
+        """Test that store new returns 1 when user inputs empty docs path."""
+        # Arrange
+        argv = ["store", "new", "my-store"]
+
+        with patch('rag.cli.console') as mock_cli_console:
+            # Mock input to return empty string
+            mock_cli_console.input.return_value = ""
+            mock_cli_console.print = mock_console.print
+
+            # Act
+            from rag.cli import main
+            result = main(argv)
+
+            # Assert
+            assert result == 1
+            mock_cli_console.print.assert_any_call("[red]Error: Documents path is required.[/red]")
+
+    def test_StoreDelete_WithoutForce_UserConfirms_Deletes(self, mock_console: Any) -> None:
+        """Test that store delete prompts and deletes when user confirms."""
+        # Arrange
+        argv = ["store", "delete", "my-store"]
+
+        with patch('rag.cli.get_store', return_value={"name": "my-store"}):
+            with patch('rag.cli.delete_store') as mock_delete:
+                with patch('rag.cli.console') as mock_cli_console:
+                    # Mock input to return 'y' for confirmation
+                    mock_cli_console.input.return_value = 'y'
+                    mock_cli_console.print = mock_console.print
+
+                    # Act
+                    from rag.cli import main
+                    result = main(argv)
+
+                    # Assert
+                    assert result == 0
+                    mock_delete.assert_called_once_with("my-store")
+
+    def test_StoreDelete_WithoutForce_UserCancels_NoDelete(self, mock_console: Any) -> None:
+        """Test that store delete cancels when user declines confirmation."""
+        # Arrange
+        argv = ["store", "delete", "my-store"]
+
+        with patch('rag.cli.get_store', return_value={"name": "my-store"}):
+            with patch('rag.cli.delete_store') as mock_delete:
+                with patch('rag.cli.console') as mock_cli_console:
+                    # Mock input to return 'n' for cancellation
+                    mock_cli_console.input.return_value = 'n'
+                    mock_cli_console.print = mock_console.print
+
+                    # Act
+                    from rag.cli import main
+                    result = main(argv)
+
+                    # Assert
+                    assert result == 0
+                    mock_delete.assert_not_called()
+                    mock_cli_console.print.assert_any_call("[dim]Cancelled.[/dim]")
+
+    def test_StoreReindex_ExplicitNonexistentStore_ReturnsOne(self, mock_console: Any) -> None:
+        """Test that store reindex returns 1 when explicit store doesn't exist."""
+        # Arrange
+        argv = ["store", "reindex", "nonexistent-store"]
+
+        with patch('rag.cli.get_store', return_value=None):
+            # Act
+            from rag.cli import main
+            result = main(argv)
+
+            # Assert
+            assert result == 1
+            mock_console.print.assert_any_call("[red]Error: Store 'nonexistent-store' not found.[/red]")
+
+    def test_StoreList_WithInvalidDatetime_HandlesGracefully(self, mock_console: Any) -> None:
+        """Test that store list handles invalid last_indexed datetime gracefully."""
+        # Arrange
+        argv = ["store", "list"]
+
+        # Store with invalid datetime that cannot be parsed by datetime.fromisoformat
+        mock_stores = [
+            {
+                "name": "store-with-bad-date",
+                "docs_dir": "/docs",
+                "last_indexed": "not-a-valid-datetime",  # This will cause ValueError
+                "chunk_count": 50,
+            },
+            {
+                "name": "store-with-none-date",
+                "docs_dir": "/docs2",
+                "last_indexed": None,  # This could cause TypeError if passed to fromisoformat
+                "chunk_count": 100,
+            },
+        ]
+
+        with patch('rag.cli.list_stores', return_value=mock_stores):
+            with patch('rag.cli.get_default_store', return_value="store-with-bad-date"):
+                # Act
+                from rag.cli import main
+                result = main(argv)
+
+                # Assert
+                # Should return 0 and not raise exception
+                assert result == 0
+
+    def test_StoreDelete_DeleteRaisesValueError_ReturnsOne(self, mock_console: Any) -> None:
+        """Test that store delete returns 1 when delete_store raises ValueError."""
+        # Arrange
+        argv = ["store", "delete", "my-store", "--force"]
+
+        with patch('rag.cli.get_store', return_value={"name": "my-store"}):
+            with patch('rag.cli.delete_store', side_effect=ValueError("Cannot delete: store is in use")):
+                # Act
+                from rag.cli import main
+                result = main(argv)
+
+                # Assert
+                assert result == 1
+                mock_console.print.assert_any_call("[red]Error: Cannot delete: store is in use[/red]")
+
 
 class TestMigrateCommand:
     """Test cases for the migrate command."""
@@ -694,3 +860,283 @@ class TestMigrateCommand:
 
                                 # Assert
                                 assert result == 0
+
+    def test_Migrate_WithoutName_PromptsAndSucceeds(self, mock_console: Any) -> None:
+        """Test that migrate without --name prompts for store name and succeeds."""
+        # Arrange
+        argv = ["migrate", "--docs", "/docs"]
+
+        legacy_info = {
+            "index_dir": Path("/legacy/index"),
+            "docs_dir": None,
+            "file_count": 10,
+        }
+
+        store_config = {
+            "name": "my-store",
+            "docs_dir": "/docs",
+        }
+
+        with patch('rag.cli.detect_legacy_index', return_value=legacy_info):
+            with patch('rag.cli.migrate_legacy_index', return_value=store_config):
+                with patch('rag.cli.get_store_index_dir', return_value=Path("/new/index")):
+                    with patch('rag.cli.cleanup_legacy_index'):
+                        with patch('rag.cli.console') as mock_cli_console:
+                            # First input for store name, second for cleanup prompt
+                            mock_cli_console.input.side_effect = ['my-store', 'n']
+                            mock_cli_console.print = mock_console.print
+
+                            # Act
+                            from rag.cli import main
+                            result = main(argv)
+
+                            # Assert
+                            assert result == 0
+                            # Verify input was called for store name
+                            assert mock_cli_console.input.call_count == 2
+
+    def test_Migrate_CleanupPromptAccepted_CleansUp(self, mock_console: Any) -> None:
+        """Test that migrate cleans up legacy index when user confirms."""
+        # Arrange
+        argv = ["migrate", "--name", "migrated-store", "--docs", "/docs"]
+
+        legacy_info = {
+            "index_dir": Path("/legacy/index"),
+            "docs_dir": None,
+            "file_count": 10,
+        }
+
+        store_config = {
+            "name": "migrated-store",
+            "docs_dir": "/docs",
+        }
+
+        with patch('rag.cli.detect_legacy_index', return_value=legacy_info):
+            with patch('rag.cli.migrate_legacy_index', return_value=store_config):
+                with patch('rag.cli.get_store_index_dir', return_value=Path("/new/index")):
+                    with patch('rag.cli.cleanup_legacy_index', return_value=Path("/backup/path")) as mock_cleanup:
+                        with patch('rag.cli.console') as mock_cli_console:
+                            # User accepts cleanup prompt
+                            mock_cli_console.input.return_value = 'y'
+                            mock_cli_console.print = mock_console.print
+
+                            # Act
+                            from rag.cli import main
+                            result = main(argv)
+
+                            # Assert
+                            assert result == 0
+                            mock_cleanup.assert_called_once_with(backup=True)
+
+    def test_Migrate_CleanupPromptDeclined_LeavesInPlace(self, mock_console: Any) -> None:
+        """Test that migrate leaves legacy index in place when user declines."""
+        # Arrange
+        argv = ["migrate", "--name", "migrated-store", "--docs", "/docs"]
+
+        legacy_info = {
+            "index_dir": Path("/legacy/index"),
+            "docs_dir": None,
+            "file_count": 10,
+        }
+
+        store_config = {
+            "name": "migrated-store",
+            "docs_dir": "/docs",
+        }
+
+        with patch('rag.cli.detect_legacy_index', return_value=legacy_info):
+            with patch('rag.cli.migrate_legacy_index', return_value=store_config):
+                with patch('rag.cli.get_store_index_dir', return_value=Path("/new/index")):
+                    with patch('rag.cli.cleanup_legacy_index') as mock_cleanup:
+                        with patch('rag.cli.console') as mock_cli_console:
+                            # User declines cleanup prompt
+                            mock_cli_console.input.return_value = 'n'
+                            mock_cli_console.print = mock_console.print
+
+                            # Act
+                            from rag.cli import main
+                            result = main(argv)
+
+                            # Assert
+                            assert result == 0
+                            mock_cleanup.assert_not_called()
+                            # Verify "left in place" message was printed
+                            mock_cli_console.print.assert_any_call("[dim]Legacy index_storage/ left in place.[/dim]")
+
+    def test_Migrate_MigrationRaisesFileNotFoundError_ReturnsOne(self, mock_console: Any) -> None:
+        """Test that migrate returns 1 when migrate_legacy_index raises FileNotFoundError."""
+        # Arrange
+        argv = ["migrate", "--name", "migrated-store", "--docs", "/docs"]
+
+        legacy_info = {
+            "index_dir": Path("/legacy/index"),
+            "docs_dir": None,
+            "file_count": 10,
+        }
+
+        with patch('rag.cli.detect_legacy_index', return_value=legacy_info):
+            with patch('rag.cli.migrate_legacy_index', side_effect=FileNotFoundError("Legacy index not found")):
+                with patch('rag.cli.console') as mock_cli_console:
+                    mock_cli_console.print = mock_console.print
+
+                    # Act
+                    from rag.cli import main
+                    result = main(argv)
+
+                    # Assert
+                    assert result == 1
+                    mock_cli_console.print.assert_any_call("[red]Error: Legacy index not found[/red]")
+
+    def test_Migrate_CleanupRaisesValueError_ShowsWarning(self, mock_console: Any) -> None:
+        """Test that migrate shows warning when cleanup_legacy_index raises ValueError."""
+        # Arrange
+        argv = ["migrate", "--name", "migrated-store", "--docs", "/docs"]
+
+        legacy_info = {
+            "index_dir": Path("/legacy/index"),
+            "docs_dir": None,
+            "file_count": 10,
+        }
+
+        store_config = {
+            "name": "migrated-store",
+            "docs_dir": "/docs",
+        }
+
+        with patch('rag.cli.detect_legacy_index', return_value=legacy_info):
+            with patch('rag.cli.migrate_legacy_index', return_value=store_config):
+                with patch('rag.cli.get_store_index_dir', return_value=Path("/new/index")):
+                    with patch('rag.cli.cleanup_legacy_index', side_effect=ValueError("Cleanup failed")):
+                        with patch('rag.cli.console') as mock_cli_console:
+                            # User accepts cleanup prompt
+                            mock_cli_console.input.return_value = 'y'
+                            mock_cli_console.print = mock_console.print
+
+                            # Act
+                            from rag.cli import main
+                            result = main(argv)
+
+                            # Assert
+                            assert result == 0  # Should still return 0
+                            mock_cli_console.print.assert_any_call("[yellow]Warning: Could not clean up: Cleanup failed[/yellow]")
+
+    def test_Migrate_WithEmptyNameInput_ReturnsOne(self, mock_console: Any) -> None:
+        """Test that migrate returns 1 when user inputs empty store name."""
+        # Arrange
+        argv = ["migrate", "--docs", "/docs"]
+
+        legacy_info = {
+            "index_dir": Path("/legacy/index"),
+            "docs_dir": None,
+            "file_count": 10,
+        }
+
+        with patch('rag.cli.detect_legacy_index', return_value=legacy_info):
+            with patch('rag.cli.console') as mock_cli_console:
+                # User inputs empty string for store name
+                mock_cli_console.input.return_value = ""
+                mock_cli_console.print = mock_console.print
+
+                # Act
+                from rag.cli import main
+                result = main(argv)
+
+                # Assert
+                assert result == 1
+                mock_cli_console.print.assert_any_call("[red]Error: Store name is required.[/red]")
+
+    def test_Migrate_WithoutDocsAndLegacyHasNone_PromptsAndSucceeds(self, mock_console: Any) -> None:
+        """Test that migrate prompts for docs directory when legacy has none and --docs not provided."""
+        # Arrange
+        argv = ["migrate", "--name", "migrated-store"]
+
+        legacy_info = {
+            "index_dir": Path("/legacy/index"),
+            "docs_dir": None,  # No docs_dir in legacy
+            "file_count": 10,
+        }
+
+        store_config = {
+            "name": "migrated-store",
+            "docs_dir": "/user/provided/docs",
+        }
+
+        with patch('rag.cli.detect_legacy_index', return_value=legacy_info):
+            with patch('rag.cli.migrate_legacy_index', return_value=store_config) as mock_migrate:
+                with patch('rag.cli.get_store_index_dir', return_value=Path("/new/index")):
+                    with patch('rag.cli.cleanup_legacy_index'):
+                        with patch('rag.cli.console') as mock_cli_console:
+                            # First input for docs path, second for cleanup prompt
+                            mock_cli_console.input.side_effect = ['/user/provided/docs', 'n']
+                            mock_cli_console.print = mock_console.print
+
+                            # Act
+                            from rag.cli import main
+                            result = main(argv)
+
+                            # Assert
+                            assert result == 0
+                            # Verify docs_dir was passed to migrate
+                            call_kwargs = mock_migrate.call_args[1]
+                            assert call_kwargs['docs_dir'] == Path('/user/provided/docs')
+
+    def test_Migrate_WithEmptyDocsInput_ReturnsOne(self, mock_console: Any) -> None:
+        """Test that migrate returns 1 when user inputs empty docs directory."""
+        # Arrange
+        argv = ["migrate", "--name", "migrated-store"]
+
+        legacy_info = {
+            "index_dir": Path("/legacy/index"),
+            "docs_dir": None,  # No docs_dir in legacy
+            "file_count": 10,
+        }
+
+        with patch('rag.cli.detect_legacy_index', return_value=legacy_info):
+            with patch('rag.cli.console') as mock_cli_console:
+                # User inputs empty string for docs path
+                mock_cli_console.input.return_value = ""
+                mock_cli_console.print = mock_console.print
+
+                # Act
+                from rag.cli import main
+                result = main(argv)
+
+                # Assert
+                assert result == 1
+                mock_cli_console.print.assert_any_call("[red]Error: Documents directory is required.[/red]")
+
+    def test_Migrate_WithNoBackup_DeletesLegacyIndex(self, mock_console: Any) -> None:
+        """Test that migrate with --no-backup calls cleanup with backup=False."""
+        # Arrange
+        argv = ["migrate", "--name", "migrated-store", "--docs", "/docs", "--no-backup"]
+
+        legacy_info = {
+            "index_dir": Path("/legacy/index"),
+            "docs_dir": None,
+            "file_count": 10,
+        }
+
+        store_config = {
+            "name": "migrated-store",
+            "docs_dir": "/docs",
+        }
+
+        with patch('rag.cli.detect_legacy_index', return_value=legacy_info):
+            with patch('rag.cli.migrate_legacy_index', return_value=store_config):
+                with patch('rag.cli.get_store_index_dir', return_value=Path("/new/index")):
+                    with patch('rag.cli.cleanup_legacy_index', return_value=None) as mock_cleanup:
+                        with patch('rag.cli.console') as mock_cli_console:
+                            # User confirms deletion (requires 'y' with --no-backup)
+                            mock_cli_console.input.return_value = 'y'
+                            mock_cli_console.print = mock_console.print
+
+                            # Act
+                            from rag.cli import main
+                            result = main(argv)
+
+                            # Assert
+                            assert result == 0
+                            # Verify cleanup was called with backup=False
+                            mock_cleanup.assert_called_once_with(backup=False)
+                            # Verify the deletion message was printed (since backup_path is None)
+                            mock_cli_console.print.assert_any_call("[green]Legacy index deleted.[/green]")

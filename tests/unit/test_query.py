@@ -1,9 +1,147 @@
 """Unit tests for the query module."""
 
+import os
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 from typing import Any
 import pytest
+
+
+class TestSetupQueryLlmSettings:
+    """Test cases for setup_query_llm_settings function."""
+
+    def test_SetupQueryLlmSettings_WithServerDown_RaisesRuntimeError(self, mock_console: Any) -> None:
+        """Test that server not running raises RuntimeError."""
+        # Arrange
+        base_url = "http://localhost:11434"
+        embed_model = "nomic-embed-text"
+
+        with patch('rag.query.check_server', return_value=False):
+            # Act & Assert
+            from rag.query import setup_query_llm_settings
+            with pytest.raises(RuntimeError, match="Ollama server not running"):
+                setup_query_llm_settings(base_url, embed_model)
+
+    def test_SetupQueryLlmSettings_WithNoModels_RaisesRuntimeError(self, mock_console: Any) -> None:
+        """Test that no installed models raises RuntimeError."""
+        # Arrange
+        base_url = "http://localhost:11434"
+        embed_model = "nomic-embed-text"
+
+        with patch('rag.query.check_server', return_value=True):
+            with patch('rag.query.list_local_models', return_value=[]):
+                # Act & Assert
+                from rag.query import setup_query_llm_settings
+                with pytest.raises(RuntimeError, match="No models installed"):
+                    setup_query_llm_settings(base_url, embed_model)
+
+    def test_SetupQueryLlmSettings_WithNoChatModel_RaisesRuntimeError(self, mock_console: Any) -> None:
+        """Test that no suitable chat model raises RuntimeError."""
+        # Arrange
+        base_url = "http://localhost:11434"
+        embed_model = "nomic-embed-text"
+
+        with patch('rag.query.check_server', return_value=True):
+            with patch('rag.query.list_local_models', return_value=["nomic-embed-text:latest"]):
+                with patch('rag.query.choose_chat_model', return_value=None):
+                    # Act & Assert
+                    from rag.query import setup_query_llm_settings
+                    with pytest.raises(RuntimeError, match="No suitable chat model found"):
+                        setup_query_llm_settings(base_url, embed_model)
+
+    def test_SetupQueryLlmSettings_WithMissingEmbedModel_RaisesRuntimeError(self, mock_console: Any) -> None:
+        """Test that missing embed model raises RuntimeError with error message."""
+        # Arrange
+        base_url = "http://localhost:11434"
+        embed_model = "nomic-embed-text"
+        error_message = "Embedding model nomic-embed-text not found"
+
+        with patch('rag.query.check_server', return_value=True):
+            with patch('rag.query.list_local_models', return_value=["llama3.1:latest"]):
+                with patch('rag.query.choose_chat_model', return_value="llama3.1"):
+                    with patch('rag.query.ensure_embed_model', return_value=(False, error_message)):
+                        # Act & Assert
+                        from rag.query import setup_query_llm_settings
+                        with pytest.raises(RuntimeError, match=error_message):
+                            setup_query_llm_settings(base_url, embed_model)
+
+    def test_SetupQueryLlmSettings_WithValidSetup_ConfiguresSettings(self, mock_console: Any) -> None:
+        """Test that valid setup configures Settings correctly."""
+        # Arrange
+        base_url = "http://localhost:11434"
+        embed_model = "nomic-embed-text"
+        chat_model = "llama3.1"
+        request_timeout = 120.0
+        embed_batch_size = 20
+
+        mock_ollama = Mock()
+        mock_ollama_embedding = Mock()
+
+        with patch('rag.query.check_server', return_value=True):
+            with patch('rag.query.list_local_models', return_value=["llama3.1:latest", "nomic-embed-text:latest"]):
+                with patch('rag.query.choose_chat_model', return_value="llama3.1"):
+                    with patch('rag.query.ensure_embed_model', return_value=(True, "OK")):
+                        with patch('rag.query.Ollama', return_value=mock_ollama) as mock_ollama_class:
+                            with patch('rag.query.OllamaEmbedding', return_value=mock_ollama_embedding) as mock_embed_class:
+                                with patch('rag.query.Settings') as mock_settings:
+                                    # Act
+                                    from rag.query import setup_query_llm_settings
+                                    setup_query_llm_settings(
+                                        base_url=base_url,
+                                        embed_model=embed_model,
+                                        chat_model=chat_model,
+                                        request_timeout=request_timeout,
+                                        embed_batch_size=embed_batch_size,
+                                    )
+
+                                    # Assert
+                                    mock_ollama_class.assert_called_once_with(
+                                        model="llama3.1",
+                                        base_url=base_url,
+                                        temperature=0,
+                                        request_timeout=request_timeout,
+                                    )
+                                    mock_embed_class.assert_called_once_with(
+                                        model_name=embed_model,
+                                        base_url=base_url,
+                                        embed_batch_size=embed_batch_size,
+                                    )
+                                    # Verify Settings were assigned
+                                    assert mock_settings.llm == mock_ollama
+                                    assert mock_settings.embed_model == mock_ollama_embedding
+                                    # Verify console printed success messages
+                                    assert mock_console.print.call_count >= 2
+
+    def test_SetupQueryLlmSettings_WithAutoChatModel_UsesChosenModel(self, mock_console: Any) -> None:
+        """Test that when chat_model is None, choose_chat_model result is used."""
+        # Arrange
+        base_url = "http://localhost:11434"
+        embed_model = "nomic-embed-text"
+        auto_detected_model = "mistral:latest"
+
+        mock_ollama = Mock()
+        mock_ollama_embedding = Mock()
+
+        with patch('rag.query.check_server', return_value=True):
+            with patch('rag.query.list_local_models', return_value=["mistral:latest", "nomic-embed-text:latest"]):
+                with patch('rag.query.choose_chat_model', return_value=auto_detected_model) as mock_choose:
+                    with patch('rag.query.ensure_embed_model', return_value=(True, "OK")):
+                        with patch('rag.query.Ollama', return_value=mock_ollama) as mock_ollama_class:
+                            with patch('rag.query.OllamaEmbedding', return_value=mock_ollama_embedding):
+                                with patch('rag.query.Settings'):
+                                    # Act
+                                    from rag.query import setup_query_llm_settings
+                                    setup_query_llm_settings(
+                                        base_url=base_url,
+                                        embed_model=embed_model,
+                                        chat_model=None,  # None triggers auto-detection
+                                    )
+
+                                    # Assert
+                                    mock_choose.assert_called_once_with(None, ["mistral:latest", "nomic-embed-text:latest"])
+                                    mock_ollama_class.assert_called_once()
+                                    call_kwargs = mock_ollama_class.call_args[1]
+                                    assert call_kwargs["model"] == auto_detected_model
 
 
 class TestAsk:
@@ -484,6 +622,155 @@ class TestAsk:
                                     # Assert
                                     assert "Test answer" in result
                                     # Should handle gracefully without crashing
+
+    def test_Ask_WithSourceNodeNoScore_UsesZeroDefault(self, mock_console: Any) -> None:
+        """Test that source node without score attribute uses 0 as default."""
+        # Arrange
+        mock_store = {"chat_model": "llama3.1"}
+        mock_global_config = {
+            "ollama_base_url": "http://localhost:11434",
+            "ollama_embed_model": "nomic-embed-text",
+            "request_timeout": 60.0,
+            "embed_batch_size": 10,
+        }
+        # Source node with metadata but no score attribute
+        mock_source_node = Mock(spec=['metadata'])
+        mock_source_node.metadata = {"file_name": "test_document.txt"}
+
+        mock_response = Mock()
+        mock_response.configure_mock(__str__=Mock(return_value="Test answer"))
+        mock_response.source_nodes = [mock_source_node]
+
+        with patch('rag.query.resolve_store', return_value="default"):
+            with patch('rag.query.get_store', return_value=mock_store):
+                with patch('rag.query.get_store_index_dir') as mock_get_index_dir:
+                    mock_index_dir = Mock()
+                    mock_index_dir.exists.return_value = True
+                    mock_index_dir.__truediv__ = Mock(return_value=Mock(exists=Mock(return_value=True)))
+                    mock_get_index_dir.return_value = mock_index_dir
+                    with patch('rag.query.get_global_config', return_value=mock_global_config):
+                        with patch('rag.query.setup_query_llm_settings'):
+                            with patch('rag.query.StorageContext'):
+                                with patch('rag.query.load_index_from_storage') as mock_load_index:
+                                    mock_index = Mock()
+                                    mock_query_engine = Mock()
+                                    mock_query_engine.query.return_value = mock_response
+                                    mock_index.as_query_engine.return_value = mock_query_engine
+                                    mock_load_index.return_value = mock_index
+
+                                    # Act
+                                    from rag.query import ask
+                                    result = ask("test question", show_sources=True)
+
+                                    # Assert
+                                    assert "Test answer" in result
+                                    assert "test_document.txt" in result
+                                    # Score should be 0.000 when not present
+                                    assert "(score: 0.000)" in result
+
+    def test_Ask_WithEnvVarOllamaBaseUrl_UsesEnvVar(self, mock_console: Any) -> None:
+        """Test that OLLAMA_BASE_URL env var takes precedence over config."""
+        # Arrange
+        mock_store = {"chat_model": "llama3.1"}
+        mock_global_config = {
+            "ollama_base_url": "http://localhost:11434",
+            "ollama_embed_model": "nomic-embed-text",
+            "request_timeout": 60.0,
+            "embed_batch_size": 10,
+        }
+        env_base_url = "http://custom-host:11434"
+        mock_response = Mock()
+        mock_response.configure_mock(__str__=Mock(return_value="Test answer"))
+
+        # Set environment variable
+        original_env = os.environ.get("OLLAMA_BASE_URL")
+        os.environ["OLLAMA_BASE_URL"] = env_base_url
+
+        try:
+            with patch('rag.query.resolve_store', return_value="default"):
+                with patch('rag.query.get_store', return_value=mock_store):
+                    with patch('rag.query.get_store_index_dir') as mock_get_index_dir:
+                        mock_index_dir = Mock()
+                        mock_index_dir.exists.return_value = True
+                        mock_index_dir.__truediv__ = Mock(return_value=Mock(exists=Mock(return_value=True)))
+                        mock_get_index_dir.return_value = mock_index_dir
+                        with patch('rag.query.get_global_config', return_value=mock_global_config):
+                            with patch('rag.query.setup_query_llm_settings') as mock_setup:
+                                with patch('rag.query.StorageContext'):
+                                    with patch('rag.query.load_index_from_storage') as mock_load_index:
+                                        mock_index = Mock()
+                                        mock_query_engine = Mock()
+                                        mock_query_engine.query.return_value = mock_response
+                                        mock_index.as_query_engine.return_value = mock_query_engine
+                                        mock_load_index.return_value = mock_index
+
+                                        # Act
+                                        from rag.query import ask
+                                        ask("test question")
+
+                                        # Assert
+                                        mock_setup.assert_called_once()
+                                        call_kwargs = mock_setup.call_args[1]
+                                        # Verify env var base_url was used
+                                        assert call_kwargs["base_url"] == env_base_url
+        finally:
+            # Restore original environment
+            if original_env is not None:
+                os.environ["OLLAMA_BASE_URL"] = original_env
+            elif "OLLAMA_BASE_URL" in os.environ:
+                del os.environ["OLLAMA_BASE_URL"]
+
+    def test_Ask_WithEnvVarOllamaEmbedModel_UsesEnvVar(self, mock_console: Any) -> None:
+        """Test that OLLAMA_EMBED_MODEL env var takes precedence over config."""
+        # Arrange
+        mock_store = {"chat_model": "llama3.1"}
+        mock_global_config = {
+            "ollama_base_url": "http://localhost:11434",
+            "ollama_embed_model": "nomic-embed-text",
+            "request_timeout": 60.0,
+            "embed_batch_size": 10,
+        }
+        env_embed_model = "custom-embed-model"
+        mock_response = Mock()
+        mock_response.configure_mock(__str__=Mock(return_value="Test answer"))
+
+        # Set environment variable
+        original_env = os.environ.get("OLLAMA_EMBED_MODEL")
+        os.environ["OLLAMA_EMBED_MODEL"] = env_embed_model
+
+        try:
+            with patch('rag.query.resolve_store', return_value="default"):
+                with patch('rag.query.get_store', return_value=mock_store):
+                    with patch('rag.query.get_store_index_dir') as mock_get_index_dir:
+                        mock_index_dir = Mock()
+                        mock_index_dir.exists.return_value = True
+                        mock_index_dir.__truediv__ = Mock(return_value=Mock(exists=Mock(return_value=True)))
+                        mock_get_index_dir.return_value = mock_index_dir
+                        with patch('rag.query.get_global_config', return_value=mock_global_config):
+                            with patch('rag.query.setup_query_llm_settings') as mock_setup:
+                                with patch('rag.query.StorageContext'):
+                                    with patch('rag.query.load_index_from_storage') as mock_load_index:
+                                        mock_index = Mock()
+                                        mock_query_engine = Mock()
+                                        mock_query_engine.query.return_value = mock_response
+                                        mock_index.as_query_engine.return_value = mock_query_engine
+                                        mock_load_index.return_value = mock_index
+
+                                        # Act
+                                        from rag.query import ask
+                                        ask("test question")
+
+                                        # Assert
+                                        mock_setup.assert_called_once()
+                                        call_kwargs = mock_setup.call_args[1]
+                                        # Verify env var embed_model was used
+                                        assert call_kwargs["embed_model"] == env_embed_model
+        finally:
+            # Restore original environment
+            if original_env is not None:
+                os.environ["OLLAMA_EMBED_MODEL"] = original_env
+            elif "OLLAMA_EMBED_MODEL" in os.environ:
+                del os.environ["OLLAMA_EMBED_MODEL"]
 
 
 class TestQuery:
