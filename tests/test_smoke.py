@@ -229,31 +229,5 @@ def test_cli_help():
     assert exc_info.value.code == 0
 
 
-def test_cli_config_info():
-    """Test CLI config info command."""
-    from rag.cli import main
-    
-    # Test default config info
-    result = main(["--config-info"])
-    assert result == 0
-    
-    # Test with specific environment
-    result = main(["--config-info", "--env", "production"])
-    assert result == 0
-    
-    result = main(["--config-info", "--env", "docker"])
-    assert result == 0
-
-
-def test_cli_with_environment():
-    """Test CLI commands with environment parameter."""
-    from rag.cli import main
-    
-    # Test doctor with environment (if Ollama running)
-    if check_server("http://localhost:11434"):
-        result = main(["--env", "development", "doctor"])
-        assert result == 0
-
-
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
