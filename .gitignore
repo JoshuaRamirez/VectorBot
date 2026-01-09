@@ -83,7 +83,6 @@ cython_debug/
 
 # Project specific
 index_storage/
-docs/
 /data/
 
 # Build artifacts
@@ -94,3 +93,5 @@ dist/
 # OS specific
 .DS_Store
 Thumbs.db
+# Serena AI assistant
+.serena/

@@ -10,12 +10,15 @@ Vector Bot is a fully local Retrieval-Augmented Generation (RAG) pipeline using 
 
 ## 📖 Documentation
 
-- **[USER_GUIDE.md](USER_GUIDE.md)** - Complete user guide with examples and troubleshooting
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Multi-environment deployment guide
-- **[TESTING.md](TESTING.md)** - Comprehensive testing documentation
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
-- **[SECURITY.md](SECURITY.md)** - Security policy and vulnerability reporting
-- **[CLAUDE.md](CLAUDE.md)** - Development guidelines
+**Complete documentation is available in the [docs/](docs/) directory:**
+
+- **[Getting Started](docs/index.md)** - Complete documentation portal and user journey paths
+- **[User Guide](docs/user/USER_GUIDE.md)** - Complete user guide with examples and troubleshooting
+- **[Quick Reference](docs/reference/commands.md)** - Command cheat sheet
+- **[Configuration](docs/reference/CONFIGURATION.md)** - Configuration reference
+- **[Deployment Guide](docs/admin/DEPLOYMENT.md)** - Multi-environment deployment
+- **[Contributing](docs/developer/CONTRIBUTING.md)** - Development guidelines
+- **[Security](docs/admin/security.md)** - Security policy and vulnerability reporting
 
 ## Features
 
@@ -33,7 +36,6 @@ Vector Bot is a fully local Retrieval-Augmented Generation (RAG) pipeline using 
 
 1. **Python 3.10+** installed
 2. **Ollama** installed and running
-
    ```bash
    # Check Ollama version
    ollama --version
@@ -46,7 +48,6 @@ Vector Bot is a fully local Retrieval-Augmented Generation (RAG) pipeline using 
    ```
 
 3. At least one chat model installed in Ollama:
-
    ```bash
    # If you don't have any models, install one:
    ollama pull llama3.1
@@ -54,82 +55,67 @@ Vector Bot is a fully local Retrieval-Augmented Generation (RAG) pipeline using 
 
 ## Quick Start
 
-### Option 1: Using Pre-built Executable (Easiest for most users)
+Choose one of the following install methods, then follow the same steps to verify, index, and query your documents:
 
-If you have the `vector-bot.exe` file:
+### Node.js Package (npm) — Recommended for most users
 
-1. Install Ollama and a chat model:
+```bash
+# Install globally
+npm install -g @joshuaramirez/vector-bot
 
+# Run commands
+vector-bot doctor
+vector-bot ingest
+vector-bot query "What is this document about?"
+
+# Or run without installing
+npx @joshuaramirez/vector-bot --help
+```
+
+### Python Package (pip)
+
+```bash
+# Install from PyPI
+pip install vector-bot
+```
+
+### Download Executable (manual)
+
+- [Download the latest release](https://github.com/joshuaramirez/vector-bot/releases/latest) for your platform:
+  - Windows: `vector-bot.exe`
+  - macOS/Linux: `vector-bot` (then run `chmod +x vector-bot`)
+
+---
+
+After installing with any method above:
+
+1. **Install Ollama and a chat model:**
    ```bash
    # Install Ollama from https://ollama.ai
    ollama pull llama3.1
    ollama pull nomic-embed-text
    ```
 
-2. Verify setup:
-
+2. **Verify setup:**
    ```bash
    vector-bot doctor
    ```
 
-3. Add documents and start querying:
-
-   ```bash
-   # Add your documents to docs/ folder
-   mkdir docs
-   cp your-files.pdf docs/
-
-   # Index documents
-   vector-bot ingest
-
-   # Ask questions
-   vector-bot query "What is this document about?"
-   ```
-
-See [USER_GUIDE.md](USER_GUIDE.md) for complete instructions.
-
-### Option 2: Install from NPM (Node.js users)
-
-1. Prerequisite: Ensure Node.js (v18+) and npm are installed:
-
-   ```bash
-   node -v
-   npm -v
-   ```
-
-2. Install globally:
-
-   ```bash
-   npm install -g @joshuaramirez/vector-bot
-   ```
-
-3. Verify setup:
-
-   ```bash
-   vector-bot doctor
-   ```
-
-4. Add documents and index:
-
+3. **Add documents and index:**
    ```bash
    mkdir docs
    cp your-files.pdf docs/
    vector-bot ingest
    ```
 
-5. Ask questions:
-
+4. **Ask questions:**
    ```bash
    vector-bot query "What is this document about?"
    ```
 
-6. Or run without installing:
+See [User Guide](docs/user/USER_GUIDE.md) for complete instructions.
 
-   ```bash
-   npx @joshuaramirez/vector-bot --help
-   ```
-
-### Option 3: From Source
+### From Source
 
 ```bash
 # Clone and enter the project directory
@@ -209,7 +195,7 @@ Edit `.env` or set environment variables:
 
 ## Project Structure
 
-```text
+```
 .
 ├── src/rag/          # Main package (vector-bot)
 │   ├── cli.py        # CLI interface
@@ -227,7 +213,6 @@ Edit `.env` or set environment variables:
 ## Troubleshooting
 
 ### Ollama Server Not Running
-
 ```bash
 # Start Ollama
 ollama serve
@@ -237,7 +222,6 @@ curl http://localhost:11434/api/version
 ```
 
 ### No Models Found
-
 ```bash
 # List available models
 ollama list
@@ -247,21 +231,16 @@ ollama pull llama3.1
 ```
 
 ### Port Conflicts
-
 If Ollama is running on a different port, update `.env`:
-
-```bash
+```
 OLLAMA_BASE_URL=http://localhost:YOUR_PORT
 ```
 
 ### Large Files Skipped
-
 Files over 20MB are automatically skipped during ingestion. Split large documents or adjust the limit in the code if needed.
 
 ### Missing Embedding Model
-
 The default embedding model is `nomic-embed-text`. If not installed:
-
 ```bash
 ollama pull nomic-embed-text
 
@@ -295,7 +274,7 @@ vector-bot --env docker doctor
 vector-bot --config-info --env production
 ```
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed multi-environment setup.
+See [Deployment Guide](docs/admin/DEPLOYMENT.md) for detailed multi-environment setup.
 
 ## Building Executable
 
@@ -310,7 +289,6 @@ python build_executable.py
 ```
 
 This creates a single executable file in `dist/vector-bot` (or `dist/vector-bot.exe` on Windows) that includes all dependencies and configuration files. The target system only needs:
-
 - Ollama installed and running
 - No Python installation required
 
@@ -347,14 +325,13 @@ make clean
 ### Testing
 
 The project includes comprehensive testing:
-
 - **114 unit tests** passing (99.1% pass rate)
 - **99% code coverage** across all modules
 - **100% mocked external dependencies** - tests run offline
 - **Professional test structure** following best practices
 - **CI-ready** - all tests run in under 20 seconds
 
-See [TESTING.md](TESTING.md) for detailed testing documentation.
+See [Testing Documentation](docs/developer/TESTING.md) for detailed testing documentation.
 
 ## License
 
