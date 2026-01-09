@@ -1,5 +1,6 @@
 """Unit tests for the ingest module."""
 
+import os
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 from typing import Any
@@ -120,29 +121,36 @@ class TestSetupLlmSettings:
             "embed_batch_size": 5
         }
 
-        with patch('rag.ingest.get_global_config', return_value=mock_global_config):
-            with patch('rag.ingest.check_server', return_value=True):
-                with patch('rag.ingest.list_local_models') as mock_list:
-                    mock_list.return_value = ["llama3", "test-embed"]
-                    with patch('rag.ingest.choose_chat_model') as mock_choose:
-                        mock_choose.return_value = "llama3"
-                        with patch('rag.ingest.ensure_embed_model') as mock_ensure:
-                            mock_ensure.return_value = (True, "OK")
-                            with patch('rag.ingest.Settings') as mock_settings:
-                                with patch('rag.ingest.Ollama') as mock_ollama:
-                                    with patch('rag.ingest.OllamaEmbedding') as mock_embedding:
+        # Clear environment variables so config values are used
+        env_vars_to_clear = ["OLLAMA_BASE_URL", "OLLAMA_CHAT_MODEL", "OLLAMA_EMBED_MODEL",
+                            "REQUEST_TIMEOUT", "EMBED_BATCH_SIZE"]
+        with patch.dict(os.environ, {}, clear=False):
+            for var in env_vars_to_clear:
+                os.environ.pop(var, None)
 
-                                        # Act
-                                        from rag.ingest import setup_llm_settings
-                                        setup_llm_settings()
+            with patch('rag.ingest.get_global_config', return_value=mock_global_config):
+                with patch('rag.ingest.check_server', return_value=True):
+                    with patch('rag.ingest.list_local_models') as mock_list:
+                        mock_list.return_value = ["llama3", "test-embed"]
+                        with patch('rag.ingest.choose_chat_model') as mock_choose:
+                            mock_choose.return_value = "llama3"
+                            with patch('rag.ingest.ensure_embed_model') as mock_ensure:
+                                mock_ensure.return_value = (True, "OK")
+                                with patch('rag.ingest.Settings') as mock_settings:
+                                    with patch('rag.ingest.Ollama') as mock_ollama:
+                                        with patch('rag.ingest.OllamaEmbedding') as mock_embedding:
 
-                                        # Assert
-                                        mock_ollama.assert_called_once_with(
-                                            model="llama3",
-                                            base_url="http://test:8080",
-                                            temperature=0,
-                                            request_timeout=120.0
-                                        )
+                                            # Act
+                                            from rag.ingest import setup_llm_settings
+                                            setup_llm_settings()
+
+                                            # Assert
+                                            mock_ollama.assert_called_once_with(
+                                                model="llama3",
+                                                base_url="http://test:8080",
+                                                temperature=0,
+                                                request_timeout=120.0
+                                            )
 
     def test_SetupLlmSettings_ConfiguresOllamaEmbedding_WithCorrectParameters(self, mock_console: Any) -> None:
         """Test that Ollama embedding is configured with correct parameters."""
@@ -155,28 +163,35 @@ class TestSetupLlmSettings:
             "embed_batch_size": 15
         }
 
-        with patch('rag.ingest.get_global_config', return_value=mock_global_config):
-            with patch('rag.ingest.check_server', return_value=True):
-                with patch('rag.ingest.list_local_models') as mock_list:
-                    mock_list.return_value = ["llama3", "custom-embed"]
-                    with patch('rag.ingest.choose_chat_model') as mock_choose:
-                        mock_choose.return_value = "llama3"
-                        with patch('rag.ingest.ensure_embed_model') as mock_ensure:
-                            mock_ensure.return_value = (True, "OK")
-                            with patch('rag.ingest.Settings') as mock_settings:
-                                with patch('rag.ingest.Ollama'):
-                                    with patch('rag.ingest.OllamaEmbedding') as mock_embedding:
+        # Clear environment variables so config values are used
+        env_vars_to_clear = ["OLLAMA_BASE_URL", "OLLAMA_CHAT_MODEL", "OLLAMA_EMBED_MODEL",
+                            "REQUEST_TIMEOUT", "EMBED_BATCH_SIZE"]
+        with patch.dict(os.environ, {}, clear=False):
+            for var in env_vars_to_clear:
+                os.environ.pop(var, None)
 
-                                        # Act
-                                        from rag.ingest import setup_llm_settings
-                                        setup_llm_settings()
+            with patch('rag.ingest.get_global_config', return_value=mock_global_config):
+                with patch('rag.ingest.check_server', return_value=True):
+                    with patch('rag.ingest.list_local_models') as mock_list:
+                        mock_list.return_value = ["llama3", "custom-embed"]
+                        with patch('rag.ingest.choose_chat_model') as mock_choose:
+                            mock_choose.return_value = "llama3"
+                            with patch('rag.ingest.ensure_embed_model') as mock_ensure:
+                                mock_ensure.return_value = (True, "OK")
+                                with patch('rag.ingest.Settings') as mock_settings:
+                                    with patch('rag.ingest.Ollama'):
+                                        with patch('rag.ingest.OllamaEmbedding') as mock_embedding:
 
-                                        # Assert
-                                        mock_embedding.assert_called_once_with(
-                                            model_name="custom-embed",
-                                            base_url="http://test:8080",
-                                            embed_batch_size=15
-                                        )
+                                            # Act
+                                            from rag.ingest import setup_llm_settings
+                                            setup_llm_settings()
+
+                                            # Assert
+                                            mock_embedding.assert_called_once_with(
+                                                model_name="custom-embed",
+                                                base_url="http://test:8080",
+                                                embed_batch_size=15
+                                            )
 
 
 class TestLoadDocuments:
