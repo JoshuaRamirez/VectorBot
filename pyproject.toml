@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vector-bot"
-version = "1.0.0"
+version = "0.1.0"
 description = "Vector Bot: A fully local RAG pipeline using LlamaIndex with Ollama"
 authors = [{name = "Joshua Ramirez"}]
 readme = "README.md"
