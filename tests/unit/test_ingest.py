@@ -381,7 +381,7 @@ class TestIngest:
         """Test that existing index is loaded when available."""
         # Arrange
         mock_store = {
-            "docs_dir": "/test/docs"
+            "docs_dirs": ["/test/docs"]
         }
         mock_index_dir = Path("/test/index")
         mock_docstore = Mock()
@@ -412,7 +412,7 @@ class TestIngest:
         """Test that corrupted existing index triggers new index creation."""
         # Arrange
         mock_store = {
-            "docs_dir": "/test/docs"
+            "docs_dirs": ["/test/docs"]
         }
         mock_index_dir = Path("/test/index")
 
@@ -446,7 +446,7 @@ class TestIngest:
         """Test that new index is created when none exists."""
         # Arrange
         mock_store = {
-            "docs_dir": "/test/docs"
+            "docs_dirs": ["/test/docs"]
         }
         mock_index_dir = Path("/test/index")
 
@@ -482,7 +482,7 @@ class TestIngest:
         """Test that RuntimeError is raised when no documents found."""
         # Arrange
         mock_store = {
-            "docs_dir": "/test/docs"
+            "docs_dirs": ["/test/docs"]
         }
         mock_index_dir = Path("/test/index")
 
@@ -502,7 +502,7 @@ class TestIngest:
         """Test that verbose flag is passed to VectorStoreIndex."""
         # Arrange
         mock_store = {
-            "docs_dir": "/test/docs"
+            "docs_dirs": ["/test/docs"]
         }
         mock_index_dir = Path("/test/index")
 
@@ -534,7 +534,7 @@ class TestIngest:
         """Test that force flag triggers rebuild of existing index."""
         # Arrange
         mock_store = {
-            "docs_dir": "/test/docs"
+            "docs_dirs": ["/test/docs"]
         }
         mock_index_dir = Path("/test/index")
 
@@ -566,7 +566,7 @@ class TestIngest:
         """Test that None store_name resolves to default store."""
         # Arrange
         mock_store = {
-            "docs_dir": "/test/docs"
+            "docs_dirs": ["/test/docs"]
         }
         mock_index_dir = Path("/test/index")
         mock_docstore = Mock()
@@ -594,7 +594,7 @@ class TestIngest:
         """Test that index is persisted to correct directory."""
         # Arrange
         mock_store = {
-            "docs_dir": "/test/docs"
+            "docs_dirs": ["/test/docs"]
         }
         mock_index_dir = Path("/test/index")
 
@@ -628,7 +628,7 @@ class TestIngest:
         """Test that ingest returns dictionary with chunk_count and docs_count."""
         # Arrange
         mock_store = {
-            "docs_dir": "/test/docs"
+            "docs_dirs": ["/test/docs"]
         }
         mock_index_dir = Path("/test/index")
 

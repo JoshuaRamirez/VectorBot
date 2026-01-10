@@ -88,25 +88,25 @@ def setup_llm_settings() -> None:
 
 
 def load_documents(docs_dir: Path) -> List:
-    """Load documents from the specified directory."""
+    """Load documents from a single directory."""
     if not docs_dir.exists():
         docs_dir.mkdir(parents=True, exist_ok=True)
         console.print(f"[yellow]Created docs directory: {docs_dir}[/yellow]")
         return []
-    
+
     # Define file extensions to load
     extensions = [".txt", ".md", ".pdf", ".json", ".csv"]
-    
+
     # Check for documents
     doc_files: list[Path] = []
     for ext in extensions:
         doc_files.extend(docs_dir.glob(f"*{ext}"))
         doc_files.extend(docs_dir.glob(f"**/*{ext}"))
-    
+
     if not doc_files:
         console.print(f"[yellow]No documents found in {docs_dir}[/yellow]")
         return []
-    
+
     # Filter out large files (>20MB)
     valid_files: list[Path] = []
     for file in doc_files:
@@ -115,13 +115,13 @@ def load_documents(docs_dir: Path) -> List:
             console.print(f"[yellow]Skipping large file (>{size_mb:.1f}MB): {file.name}[/yellow]")
         else:
             valid_files.append(file)
-    
+
     if not valid_files:
         console.print("[yellow]No valid documents to index[/yellow]")
         return []
-    
-    console.print(f"[blue]Loading {len(valid_files)} documents...[/blue]")
-    
+
+    console.print(f"[blue]Loading {len(valid_files)} documents from {docs_dir}...[/blue]")
+
     # Load documents
     reader = SimpleDirectoryReader(
         input_dir=str(docs_dir),
@@ -129,11 +129,31 @@ def load_documents(docs_dir: Path) -> List:
         exclude_hidden=True,
         required_exts=extensions,
     )
-    
+
     documents = reader.load_data()
     console.print(f"[green]Loaded {len(documents)} document chunks[/green]")
-    
+
     return documents
+
+
+def load_documents_from_dirs(docs_dirs: List[Path]) -> List:
+    """Load documents from multiple directories.
+
+    Args:
+        docs_dirs: List of paths to document directories.
+
+    Returns:
+        Combined list of documents from all directories.
+    """
+    all_documents = []
+    for docs_dir in docs_dirs:
+        documents = load_documents(docs_dir)
+        all_documents.extend(documents)
+
+    if len(docs_dirs) > 1:
+        console.print(f"[blue]Total: {len(all_documents)} chunks from {len(docs_dirs)} directories[/blue]")
+
+    return all_documents
 
 
 def ingest(
@@ -155,11 +175,14 @@ def ingest(
     store_name = resolve_store(store_name)
     store = get_store(store_name)
 
-    docs_dir = Path(store["docs_dir"])
+    # Get document directories (handles backwards compatibility)
+    docs_dirs = [Path(d) for d in store.get("docs_dirs", [])]
     index_dir = get_store_index_dir(store_name)
 
     console.print("[bold]Document Ingestion[/bold]")
     console.print(f"[blue]Store: {store_name}[/blue]")
+    if len(docs_dirs) > 1:
+        console.print(f"[dim]Indexing {len(docs_dirs)} directories[/dim]")
 
     # Setup LLM settings
     setup_llm_settings()
@@ -194,10 +217,11 @@ def ingest(
     if force and index_dir.exists():
         console.print("[yellow]Force flag set - rebuilding index...[/yellow]")
 
-    # Load documents
-    documents = load_documents(docs_dir)
+    # Load documents from all directories
+    documents = load_documents_from_dirs(docs_dirs)
     if not documents:
-        raise RuntimeError(f"No documents found in {docs_dir}")
+        dirs_str = ", ".join(str(d) for d in docs_dirs)
+        raise RuntimeError(f"No documents found in: {dirs_str}")
 
     # Count unique source files from loaded documents
     source_files = set()

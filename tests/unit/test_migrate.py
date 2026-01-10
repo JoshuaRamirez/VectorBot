@@ -313,7 +313,7 @@ class TestMigrateLegacyIndex:
 
             result = migrate_legacy_index("new-store", tmp_path, docs_dir=docs_dir)
 
-            mock_create_store.assert_called_once_with("new-store", docs_dir)
+            mock_create_store.assert_called_once_with("new-store", [docs_dir])
             mock_set_default.assert_called_once_with("new-store")
             assert result == mock_store_config
 
@@ -517,7 +517,7 @@ class TestMigrateLegacyIndex:
             # Verify create_store was called with docs_dir from .env
             mock_create_store.assert_called_once()
             call_args = mock_create_store.call_args[0]
-            assert call_args[1] == docs_dir
+            assert call_args[1] == [docs_dir]
 
     def test_MigrateLegacyIndex_ExplicitDocsDirOverridesEnv(
         self, tmp_path: Path
@@ -558,7 +558,7 @@ class TestMigrateLegacyIndex:
 
             mock_create_store.assert_called_once()
             call_args = mock_create_store.call_args[0]
-            assert call_args[1] == explicit_docs
+            assert call_args[1] == [explicit_docs]
 
     def test_MigrateLegacyIndex_RelativeDocsDir_ResolvesToAbsolute(
         self, tmp_path: Path
@@ -598,7 +598,7 @@ class TestMigrateLegacyIndex:
             mock_create_store.assert_called_once()
             call_args = mock_create_store.call_args[0]
             # Should be resolved to absolute
-            assert call_args[1].is_absolute()
+            assert call_args[1][0].is_absolute()
 
 
 class TestCleanupLegacyIndex:

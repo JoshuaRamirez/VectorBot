@@ -100,18 +100,24 @@ def cmd_store_new(args: argparse.Namespace) -> int:
     from pathlib import Path
 
     name = args.name
-    docs_path = args.docs
+    docs_paths = args.docs  # List of paths or None
 
     # Prompt for docs path if not provided
-    if not docs_path:
-        docs_path = console.input(f"[bold]Documents path for '{name}':[/bold] ").strip()
-        if not docs_path:
+    if not docs_paths:
+        docs_input = console.input(f"[bold]Documents path for '{name}':[/bold] ").strip()
+        if not docs_input:
             console.print("[red]Error: Documents path is required.[/red]")
             return 1
+        docs_paths = [docs_input]
+
+    # Convert to Path objects
+    docs_dirs = [Path(p) for p in docs_paths]
 
     try:
-        create_store(name, Path(docs_path))
+        create_store(name, docs_dirs)
         console.print(f"[green]Store '{name}' created successfully.[/green]")
+        if len(docs_dirs) > 1:
+            console.print(f"[dim]Indexing {len(docs_dirs)} directories.[/dim]")
 
         # Set as default if it's the first store
         stores = list_stores()
@@ -138,7 +144,7 @@ def cmd_store_list(args: argparse.Namespace) -> int:
     table = Table(title="Vector Bot Stores")
     table.add_column("Name", style="cyan")
     table.add_column("Default", style="green")
-    table.add_column("Documents Path", style="dim")
+    table.add_column("Documents", style="dim")
     table.add_column("Last Indexed", style="dim")
     table.add_column("Chunks", style="dim", justify="right")
 
@@ -157,10 +163,19 @@ def cmd_store_list(args: argparse.Namespace) -> int:
         chunk_count = store.get("chunk_count")
         chunks_str = str(chunk_count) if chunk_count is not None else "-"
 
+        # Format docs_dirs for display
+        docs_dirs = store.get("docs_dirs", [])
+        if len(docs_dirs) == 0:
+            docs_display = "-"
+        elif len(docs_dirs) == 1:
+            docs_display = docs_dirs[0]
+        else:
+            docs_display = f"{len(docs_dirs)} directories"
+
         table.add_row(
             store["name"],
             is_default,
-            store.get("docs_dir", "-"),
+            docs_display,
             last_indexed,
             chunks_str,
         )
@@ -183,7 +198,17 @@ def cmd_store_info(args: argparse.Namespace) -> int:
 
     console.print(f"[bold]Store: {name}[/bold]")
     console.print(f"  Default: {'yes' if is_default else 'no'}")
-    console.print(f"  Documents path: {store.get('docs_dir', '-')}")
+
+    # Display document directories
+    docs_dirs = store.get("docs_dirs", [])
+    if len(docs_dirs) == 0:
+        console.print("  Documents: -")
+    elif len(docs_dirs) == 1:
+        console.print(f"  Documents: {docs_dirs[0]}")
+    else:
+        console.print(f"  Documents: {len(docs_dirs)} directories")
+        for d in docs_dirs:
+            console.print(f"    - {d}")
 
     index_dir = get_store_index_dir(name)
     console.print(f"  Index path: {index_dir}")
@@ -338,7 +363,8 @@ def cmd_migrate(args: argparse.Namespace) -> int:
         console.print()
         console.print("[bold]New store info:[/bold]")
         console.print(f"  Name: {store_config['name']}")
-        console.print(f"  Documents: {store_config['docs_dir']}")
+        docs_dirs = store_config.get('docs_dirs', [])
+        console.print(f"  Documents: {docs_dirs[0] if docs_dirs else '-'}")
         console.print(f"  Index: {get_store_index_dir(store_name)}")
         console.print(f"  Set as default: yes")
     except (ValueError, FileNotFoundError) as e:
@@ -472,7 +498,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     store_new_parser.add_argument(
         "--docs",
         metavar="PATH",
-        help="Path to documents directory (prompts if not given)",
+        action="append",
+        help="Path to documents directory (can be specified multiple times)",
         default=None,
     )
 

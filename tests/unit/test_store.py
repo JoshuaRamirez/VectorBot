@@ -206,7 +206,7 @@ class TestListStores:
         # Assert
         assert len(stores) == 1
         assert stores[0]["name"] == "my-store"
-        assert stores[0]["docs_dir"] == "/path/to/docs"
+        assert stores[0]["docs_dirs"][0] == "/path/to/docs"
 
     def test_ListStores_WithMultipleStores_ReturnsAllStores(
         self, mock_stores_home: Path, mock_console: Any
@@ -311,7 +311,7 @@ class TestGetStore:
         # Assert
         assert result is not None
         assert result["name"] == "my-store"
-        assert result["docs_dir"] == "/path/to/docs"
+        assert result["docs_dirs"][0] == "/path/to/docs"
 
     def test_GetStore_WhenStoreNotExists_ReturnsNone(
         self, mock_stores_home: Path, mock_console: Any
@@ -363,7 +363,7 @@ class TestCreateStore:
         docs_dir = Path("/path/to/docs")
 
         # Act
-        result = create_store("new-store", docs_dir)
+        result = create_store("new-store", [docs_dir])
 
         # Assert
         store_dir = mock_stores_home / "stores" / "new-store"
@@ -380,7 +380,7 @@ class TestCreateStore:
         docs_dir = Path("/path/to/docs")
 
         # Act
-        result = create_store("my-store", docs_dir, chat_model="llama3.1")
+        result = create_store("my-store", [docs_dir], chat_model="llama3.1")
 
         # Assert
         assert result["chat_model"] == "llama3.1"
@@ -391,11 +391,11 @@ class TestCreateStore:
         """Test that create_store raises ValueError for duplicate names."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("existing-store", docs_dir)
+        create_store("existing-store", [docs_dir])
 
         # Act & Assert
         with pytest.raises(ValueError, match="already exists"):
-            create_store("existing-store", docs_dir)
+            create_store("existing-store", [docs_dir])
 
     @pytest.mark.parametrize(
         "invalid_name",
@@ -418,7 +418,7 @@ class TestCreateStore:
 
         # Act & Assert
         with pytest.raises(ValueError):
-            create_store(invalid_name, docs_dir)
+            create_store(invalid_name, [docs_dir])
 
     @pytest.mark.parametrize(
         "valid_name",
@@ -439,7 +439,7 @@ class TestCreateStore:
         docs_dir = Path("/path/to/docs")
 
         # Act
-        result = create_store(valid_name, docs_dir)
+        result = create_store(valid_name, [docs_dir])
 
         # Assert
         assert result["name"] == valid_name
@@ -452,11 +452,11 @@ class TestCreateStore:
         relative_path = Path("./docs")
 
         # Act
-        result = create_store("my-store", relative_path)
+        result = create_store("my-store", [relative_path])
 
         # Assert
         # The docs_dir should be an absolute path
-        assert Path(result["docs_dir"]).is_absolute()
+        assert Path(result["docs_dirs"][0]).is_absolute()
 
 
 class TestUpdateStore:
@@ -468,7 +468,7 @@ class TestUpdateStore:
         """Test that update_store updates store fields."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("my-store", docs_dir)
+        create_store("my-store", [docs_dir])
 
         # Act
         result = update_store(
@@ -497,7 +497,7 @@ class TestUpdateStore:
         """Test that update_store preserves fields not being updated."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("my-store", docs_dir, chat_model="llama3.1")
+        create_store("my-store", [docs_dir], chat_model="llama3.1")
 
         # Act
         result = update_store("my-store", chunk_count=50)
@@ -506,19 +506,19 @@ class TestUpdateStore:
         assert result["chat_model"] == "llama3.1"
         assert result["chunk_count"] == 50
 
-    def test_UpdateStore_WithDocsDir_ConvertsToAbsolutePath(
+    def test_UpdateStore_WithDocsDirs_ConvertsToAbsolutePaths(
         self, mock_stores_home: Path, mock_console: Any
     ) -> None:
-        """Test that update_store converts docs_dir to absolute path."""
+        """Test that update_store converts docs_dirs to absolute paths."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("my-store", docs_dir)
+        create_store("my-store", [docs_dir])
 
         # Act
-        result = update_store("my-store", docs_dir="./new/docs")
+        result = update_store("my-store", docs_dirs=["./new/docs"])
 
         # Assert
-        assert Path(result["docs_dir"]).is_absolute()
+        assert Path(result["docs_dirs"][0]).is_absolute()
 
 
 class TestDeleteStore:
@@ -530,7 +530,7 @@ class TestDeleteStore:
         """Test that delete_store removes store directory."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("my-store", docs_dir)
+        create_store("my-store", [docs_dir])
         store_dir = mock_stores_home / "stores" / "my-store"
         assert store_dir.exists()
 
@@ -561,7 +561,7 @@ class TestDeleteStore:
         """Test that delete_store clears default when deleting default store."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("my-store", docs_dir)
+        create_store("my-store", [docs_dir])
         set_default_store("my-store")
         assert get_default_store() == "my-store"
 
@@ -589,7 +589,7 @@ class TestRenameStore:
         """Test that rename_store renames the store directory."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("old-name", docs_dir)
+        create_store("old-name", [docs_dir])
 
         old_dir = mock_stores_home / "stores" / "old-name"
         assert old_dir.exists()
@@ -621,8 +621,8 @@ class TestRenameStore:
         """Test that rename_store raises ValueError when new name already exists."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("store-a", docs_dir)
-        create_store("store-b", docs_dir)
+        create_store("store-a", [docs_dir])
+        create_store("store-b", [docs_dir])
 
         # Act & Assert
         with pytest.raises(ValueError, match="already exists"):
@@ -634,7 +634,7 @@ class TestRenameStore:
         """Test that rename_store updates default store reference."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("old-name", docs_dir)
+        create_store("old-name", [docs_dir])
         set_default_store("old-name")
         assert get_default_store() == "old-name"
 
@@ -650,7 +650,7 @@ class TestRenameStore:
         """Test that rename_store validates new name."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("valid-name", docs_dir)
+        create_store("valid-name", [docs_dir])
 
         # Act & Assert
         with pytest.raises(ValueError):
@@ -720,7 +720,7 @@ class TestSetDefaultStore:
         """Test that set_default_store sets the default store."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("my-store", docs_dir)
+        create_store("my-store", [docs_dir])
 
         # Act
         set_default_store("my-store")
@@ -746,8 +746,8 @@ class TestSetDefaultStore:
         """Test that set_default_store changes existing default."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("store-a", docs_dir)
-        create_store("store-b", docs_dir)
+        create_store("store-a", [docs_dir])
+        create_store("store-b", [docs_dir])
         set_default_store("store-a")
         assert get_default_store() == "store-a"
 
@@ -767,7 +767,7 @@ class TestResolveStore:
         """Test that resolve_store returns explicit name when provided."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("my-store", docs_dir)
+        create_store("my-store", [docs_dir])
 
         # Act
         result = resolve_store("my-store")
@@ -793,7 +793,7 @@ class TestResolveStore:
         """Test that resolve_store returns default store when no name provided."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("default-store", docs_dir)
+        create_store("default-store", [docs_dir])
         set_default_store("default-store")
 
         # Act
@@ -808,7 +808,7 @@ class TestResolveStore:
         """Test that resolve_store returns single store when only one exists."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("only-store", docs_dir)
+        create_store("only-store", [docs_dir])
         # No default set
 
         # Act
@@ -823,8 +823,8 @@ class TestResolveStore:
         """Test that resolve_store raises ValueError with multiple stores and no default."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("store-a", docs_dir)
-        create_store("store-b", docs_dir)
+        create_store("store-a", [docs_dir])
+        create_store("store-b", [docs_dir])
         # No default set
 
         # Act & Assert
@@ -849,7 +849,7 @@ class TestResolveStore:
         """Test that resolve_store raises ValueError when default store was deleted."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("my-store", docs_dir)
+        create_store("my-store", [docs_dir])
         set_default_store("my-store")
 
         # Manually delete the store directory (simulating external deletion)
@@ -902,7 +902,7 @@ class TestCreateStoreErrors:
         with patch("builtins.open", side_effect=mock_open_func):
             # Act & Assert
             with pytest.raises(OSError, match="Failed to create store configuration"):
-                create_store(store_name, docs_dir)
+                create_store(store_name, [docs_dir])
 
         # Verify cleanup occurred - store directory should not exist
         assert not store_dir.exists()
@@ -917,7 +917,7 @@ class TestUpdateStoreErrors:
         """Test that update_store raises OSError when config write fails."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("my-store", docs_dir)
+        create_store("my-store", [docs_dir])
 
         # Create a mock file object that raises on write
         mock_file = MagicMock()
@@ -938,20 +938,20 @@ class TestUpdateStoreErrors:
             with pytest.raises(OSError, match="Failed to update store configuration"):
                 update_store("my-store", chunk_count=100)
 
-    def test_UpdateStore_WithDocsDir_Path_ConvertsToAbsolute(
+    def test_UpdateStore_WithDocsDirs_Path_ConvertsToAbsolute(
         self, mock_stores_home: Path, mock_console: Any
     ) -> None:
-        """Test that update_store handles Path object for docs_dir conversion."""
+        """Test that update_store handles Path objects for docs_dirs conversion."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("my-store", docs_dir)
+        create_store("my-store", [docs_dir])
 
-        # Act - pass a Path object that is relative
-        new_docs = Path("relative/path")
-        result = update_store("my-store", docs_dir=new_docs)
+        # Act - pass Path objects that are relative
+        new_docs = [Path("relative/path")]
+        result = update_store("my-store", docs_dirs=new_docs)
 
         # Assert - should be converted to absolute path
-        assert Path(result["docs_dir"]).is_absolute()
+        assert Path(result["docs_dirs"][0]).is_absolute()
 
 
 class TestDeleteStoreErrors:
@@ -963,7 +963,7 @@ class TestDeleteStoreErrors:
         """Test that delete_store raises OSError when rmtree fails."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("my-store", docs_dir)
+        create_store("my-store", [docs_dir])
 
         # Mock shutil.rmtree to fail
         with patch("rag.store.shutil.rmtree", side_effect=OSError("Permission denied")):
@@ -981,7 +981,7 @@ class TestRenameStoreErrors:
         """Test that rename_store raises OSError when directory rename fails."""
         # Arrange
         docs_dir = Path("/path/to/docs")
-        create_store("old-name", docs_dir)
+        create_store("old-name", [docs_dir])
 
         # Mock Path.rename to fail
         with patch.object(Path, "rename", side_effect=OSError("Cross-device link")):

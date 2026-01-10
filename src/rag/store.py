@@ -131,7 +131,7 @@ def list_stores() -> list[dict[str, Any]]:
     Returns:
         List of store info dictionaries, each containing:
         - name: Store name
-        - docs_dir: Path to documents directory
+        - docs_dirs: List of paths to documents directories
         - last_indexed: ISO timestamp of last indexing, or None
         - chunk_count: Number of indexed chunks
     """
@@ -153,9 +153,16 @@ def list_stores() -> list[dict[str, Any]]:
             with open(store_config_path, "r", encoding="utf-8") as f:
                 store_data = json.load(f)
 
+            # Handle both old (docs_dir) and new (docs_dirs) formats
+            docs_dirs = store_data.get("docs_dirs")
+            if docs_dirs is None:
+                # Backwards compatibility: convert single docs_dir to list
+                old_docs_dir = store_data.get("docs_dir")
+                docs_dirs = [old_docs_dir] if old_docs_dir else []
+
             stores.append({
                 "name": store_data.get("name", store_dir.name),
-                "docs_dir": store_data.get("docs_dir"),
+                "docs_dirs": docs_dirs,
                 "last_indexed": store_data.get("last_indexed"),
                 "chunk_count": store_data.get("chunk_count", 0),
             })
@@ -174,6 +181,7 @@ def get_store(name: str) -> dict[str, Any] | None:
 
     Returns:
         Store configuration dictionary, or None if store doesn't exist.
+        Always returns docs_dirs as a list (converts legacy docs_dir if needed).
     """
     _validate_store_name(name)
     store_config_path = _get_store_dir(name) / STORE_CONFIG_FILE
@@ -184,7 +192,12 @@ def get_store(name: str) -> dict[str, Any] | None:
     try:
         with open(store_config_path, "r", encoding="utf-8") as f:
             result: dict[str, Any] = json.load(f)
-            return result
+
+        # Handle backwards compatibility: convert docs_dir to docs_dirs
+        if "docs_dirs" not in result and "docs_dir" in result:
+            result["docs_dirs"] = [result["docs_dir"]]
+
+        return result
     except (json.JSONDecodeError, OSError) as e:
         console.print(f"[yellow]Warning: Could not read store config: {e}[/yellow]")
         return None
@@ -192,14 +205,14 @@ def get_store(name: str) -> dict[str, Any] | None:
 
 def create_store(
     name: str,
-    docs_dir: Path,
+    docs_dirs: list[Path],
     chat_model: str | None = None,
 ) -> dict[str, Any]:
     """Create a new document store.
 
     Args:
         name: Unique name for the store.
-        docs_dir: Path to the documents directory.
+        docs_dirs: List of paths to documents directories.
         chat_model: Optional chat model override for this store.
 
     Returns:
@@ -214,9 +227,12 @@ def create_store(
     if store_dir.exists():
         raise ValueError(f"Store '{name}' already exists.")
 
-    # Convert to absolute path if relative
-    if not docs_dir.is_absolute():
-        docs_dir = docs_dir.resolve()
+    # Convert to absolute paths if relative
+    resolved_dirs = []
+    for docs_dir in docs_dirs:
+        if not docs_dir.is_absolute():
+            docs_dir = docs_dir.resolve()
+        resolved_dirs.append(str(docs_dir))
 
     # Create store directory structure
     store_dir.mkdir(parents=True, exist_ok=True)
@@ -226,7 +242,7 @@ def create_store(
     # Create store configuration
     store_config = {
         "name": name,
-        "docs_dir": str(docs_dir),
+        "docs_dirs": resolved_dirs,
         "created": datetime.now(timezone.utc).isoformat(),
         "last_indexed": None,
         "chunk_count": 0,
@@ -266,12 +282,15 @@ def update_store(name: str, **kwargs: Any) -> dict[str, Any]:
 
     # Update fields
     for key, value in kwargs.items():
-        if key == "docs_dir" and value is not None:
-            # Ensure docs_dir is stored as absolute path string
-            path = Path(value)
-            if not path.is_absolute():
-                path = path.resolve()
-            store_config[key] = str(path)
+        if key == "docs_dirs" and value is not None:
+            # Ensure docs_dirs are stored as absolute path strings
+            resolved = []
+            for p in value:
+                path = Path(p) if isinstance(p, str) else p
+                if not path.is_absolute():
+                    path = path.resolve()
+                resolved.append(str(path))
+            store_config[key] = resolved
         else:
             store_config[key] = value
 

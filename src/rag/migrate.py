@@ -133,8 +133,8 @@ def migrate_legacy_index(
     if not docs_dir.is_absolute():
         docs_dir = docs_dir.resolve()
 
-    # Create the new store
-    store_config = create_store(store_name, docs_dir)
+    # Create the new store (pass docs_dir as a list)
+    store_config = create_store(store_name, [docs_dir])
 
     # Copy index files from legacy to new store
     new_index_dir = get_store_index_dir(store_name)

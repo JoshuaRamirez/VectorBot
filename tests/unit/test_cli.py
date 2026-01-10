@@ -451,7 +451,7 @@ class TestStoreCommands:
 
                     # Assert
                     assert result == 0
-                    mock_create.assert_called_once_with("my-store", Path("/path/to/docs"))
+                    mock_create.assert_called_once_with("my-store", [Path("/path/to/docs")])
 
     def test_StoreNew_WithExistingStore_ReturnsOne(self, mock_console: Any) -> None:
         """Test that store new returns 1 when store already exists."""
@@ -690,7 +690,7 @@ class TestStoreCommands:
 
                         # Assert
                         assert result == 0
-                        mock_create.assert_called_once_with("my-store", Path("/path/to/docs"))
+                        mock_create.assert_called_once_with("my-store", [Path("/path/to/docs")])
 
     def test_StoreNew_WithEmptyDocsInput_ReturnsOne(self, mock_console: Any) -> None:
         """Test that store new returns 1 when user inputs empty docs path."""
