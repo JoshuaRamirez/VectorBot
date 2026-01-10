@@ -6,16 +6,15 @@ build-backend = "setuptools.build_meta"
 name = "vector-bot"
 version = "1.0.0"
 description = "Vector Bot: A fully local RAG pipeline using LlamaIndex with Ollama"
-authors = [{name = "Vector Bot Developer"}]
+authors = [{name = "Joshua Ramirez"}]
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = "MIT"
 keywords = ["vector-bot", "rag", "ollama", "llama-index", "local", "offline", "embeddings", "llm"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -34,10 +33,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/joshuaramirez/vector-bot"
-Repository = "https://github.com/joshuaramirez/vector-bot"
-Issues = "https://github.com/joshuaramirez/vector-bot/issues"
-Changelog = "https://github.com/joshuaramirez/vector-bot/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/JoshuaRamirez/VectorBot"
+Repository = "https://github.com/JoshuaRamirez/VectorBot"
+Issues = "https://github.com/JoshuaRamirez/VectorBot/issues"
+Changelog = "https://github.com/JoshuaRamirez/VectorBot/blob/master/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
