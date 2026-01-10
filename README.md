@@ -29,7 +29,7 @@ Vector Bot is a fully local Retrieval-Augmented Generation (RAG) pipeline using 
 - **Persistent Storage**: Indexes are saved to disk for fast subsequent queries
 - **Clean CLI**: Simple command-line interface with doctor, ingest, and query commands
 - **CI/CD Pipeline**: Automated testing, building, and PyPI publishing
-- **Comprehensive Testing**: 135 passing tests with 99% code coverage
+- **Comprehensive Testing**: 324 passing tests with 99% code coverage
 - **Security Scanning**: Automated vulnerability detection and CodeQL analysis
 
 ## Prerequisites

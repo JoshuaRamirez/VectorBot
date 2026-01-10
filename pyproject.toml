@@ -47,6 +47,7 @@ dev = [
 ]
 
 [project.scripts]
+vector-bot = "rag.cli:main"
 rag = "rag.cli:main"
 
 [tool.setuptools.packages.find]
