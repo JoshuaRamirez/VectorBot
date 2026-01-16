@@ -41,7 +41,7 @@ class TestVersion:
         from rag.version import __version__
         
         # Assert
-        assert __version__ == "1.0.0"
+        assert __version__ == "0.1.0"
 
     def test_Version_ModuleDocstring_ExistsAndIsString(self):
         """Test that module has a docstring."""
